@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_top">
+<title>HaiLux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#222}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none;border:1px solid #ddd;border-radius:6px;padding:8px 12px;width:100%}
+input:focus,select:focus,textarea:focus{border-color:#1a3a8f}
+.hidden{display:none!important}
+#app{display:flex;min-height:100vh}
+#sidebar{width:220px;background:#0d1b4b;color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
+#main{margin-left:220px;flex:1;padding:24px}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo h2{font-size:1.4rem;font-weight:700;color:#c8d8f8;letter-spacing:.1em;text-transform:uppercase;font-family:'Cormorant Garamond',serif}
+.sidebar-logo p{font-size:.75rem;color:#aaa;margin-top:2px}
+.sidebar-user{padding:12px 20px;font-size:.85rem;color:#ccc;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-user strong{color:#fff;display:block}
+nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;color:#c8d8f8;font-size:.9rem;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:#c8d8f8}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.btn-logout{background:rgba(255,255,255,.08);color:#ccc;padding:8px 16px;border-radius:6px;font-size:.85rem;width:100%}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0d1b4b}
+.login-card{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo h1{font-size:2.4rem;font-weight:700;color:#0d1b4b;font-family:'Cormorant Garamond',serif;letter-spacing:.08em;text-transform:uppercase}
+.login-logo p{color:#888;font-size:.9rem;margin-top:4px}
+.login-tabs{display:flex;margin-bottom:24px;border:1px solid #eee;border-radius:8px;overflow:hidden}
+.login-tab{flex:1;padding:10px;text-align:center;font-size:.9rem;color:#888;cursor:pointer;transition:.2s}
+.login-tab.active{background:#0d1b4b;color:#fff;font-weight:600}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:#555;margin-bottom:6px}
+.btn-primary{background:#0d1b4b;color:#fff;padding:12px;border-radius:8px;font-size:1rem;font-weight:600;width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.btn-primary:disabled{opacity:.7;cursor:not-allowed}
+.btn-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+.login-error{color:#0d1b4b;font-size:.85rem;margin-top:8px;text-align:center}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:1.5rem;font-weight:700;color:#0d1b4b}
+.page-header .sub{font-size:.9rem;color:#888;margin-top:2px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #1a3a8f}
+.stat-card.red{border-left-color:#0d1b4b}
+.stat-card.green{border-left-color:#4CAF50}
+.stat-card.orange{border-left-color:#FF9800}
+.stat-card.blue{border-left-color:#2196F3}
+.stat-val{font-size:2rem;font-weight:700}
+.stat-lbl{font-size:.85rem;color:#888;margin-top:4px}
+.stat-sub{font-size:.8rem;color:#aaa;margin-top:2px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.card-toolbar{padding:16px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #f0f0f0}
+.card-body{padding:20px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#f8f9ff}
+th{padding:12px 16px;text-align:left;font-size:.82rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:12px 16px;font-size:.9rem;border-top:1px solid #f5f5f5;vertical-align:middle}
+tr:hover td{background:#fafbff}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600}
+.badge-red{background:#e8edf8;color:#0d1b4b}
+.btn{padding:8px 16px;border-radius:8px;font-size:.88rem;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.btn-sm{padding:5px 10px;font-size:.8rem;border-radius:6px}
+.btn-blue{background:#1a3a8f;color:#fff}
+.btn-green{background:#4CAF50;color:#fff}
+.btn-outline{background:#fff;border:1px solid #ddd;color:#555}
+.btn-outline:hover{border-color:#1a3a8f;color:#1a3a8f}
+.btn-ghost{background:transparent;color:#888;padding:6px 10px;border-radius:6px}
+.btn-ghost:hover{background:#f5f5f5}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-lg{max-width:900px}
+.modal-hd{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-hd h3{font-size:1.1rem;font-weight:700}
+.modal-bd{padding:24px;overflow-y:auto;flex:1}
+.modal-ft{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.btn-x{background:none;font-size:1.3rem;color:#aaa;line-height:1}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.row1{grid-template-columns:1fr;margin-bottom:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.fg label{display:block;font-size:.83rem;font-weight:600;color:#555;margin-bottom:5px}
+.fg{margin-bottom:0}
+textarea{resize:vertical;min-height:80px}
+.hint{font-size:.78rem;color:#aaa;margin-top:4px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.detail-box{background:#f8f9ff;border-radius:10px;padding:16px}
+.detail-box h4{font-size:.85rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.detail-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:.88rem}
+.detail-row .lbl{color:#888}
+.detail-row .val{font-weight:500;text-align:right;max-width:60%}
+.task-item{background:#f8f9ff;border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;border:1px solid #eee}
+.task-item:hover{border-color:#1a3a8f;background:#eef2ff}
+.task-num{width:28px;height:28px;border-radius:50%;background:#1a3a8f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.task-info{flex:1}
+.task-name{font-weight:600;font-size:.92rem}
+.task-meta{font-size:.8rem;color:#888;margin-top:3px}
+.task-acts{display:flex;gap:6px;flex-shrink:0}
+.sec-title{font-size:1rem;font-weight:700;color:#0d1b4b;margin:20px 0 12px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.emp-card{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #ddd;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:12px}
+.emp-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-1px)}
+.ec-avt{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:zoom-in;overflow:hidden}
+.ec-avt img{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
+.ec-body{flex:1;min-width:0}
+.emp-card.in-progress{border-left-color:#FF9800}
+.emp-card.upcoming{border-left-color:#1a3a8f}
+.emp-card.done{border-left-color:#4CAF50;opacity:.7}
+.emp-card.blocked{opacity:.5}
+.ec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ec-name{font-weight:600;font-size:.95rem}
+.ec-job{font-size:.82rem;color:#888;margin-bottom:4px}
+.ec-dl{font-size:.8rem;color:#888}
+.ec-dl.over{color:#0d1b4b;font-weight:600}
+.imgs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px}
+.img-th{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:#f0f0f0;cursor:pointer}
+.img-th img{width:100%;height:100%;object-fit:cover}
+.img-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:22px;height:22px;font-size:.7rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;border:none}
+.img-th:hover .img-del{opacity:1}
+.img-th img{width:100%;height:100%;object-fit:cover;transition:.2s}
+.img-th:hover img{opacity:.9}
+.img-broken{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#ccc;font-size:1.5rem;background:#f5f5f5}
+.img-uploading{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#eef2ff}
+.job-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #eee;background:#f5f5f5;cursor:zoom-in}
+.job-thumb-ph{width:40px;height:40px;border-radius:8px;flex-shrink:0;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#ccc}
+.upload-zone{border:2px dashed #b8c8f0;border-radius:10px;padding:20px;text-align:center;color:#aaa;cursor:pointer;transition:.2s;background:#fafbff}
+.upload-zone:hover{border-color:#1a3a8f;color:#1a3a8f;background:#eef2ff}
+.upload-zone.drag-over{border-color:#1a3a8f;background:#e0e8ff;color:#1a3a8f}
+/* Lightbox */
+.lb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9998;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.lb-close{position:fixed;top:16px;right:20px;color:#fff;font-size:2rem;cursor:pointer;z-index:9999;background:none;border:none;opacity:.8}
+.lb-close:hover{opacity:1}
+.set-sec{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+.set-sec h3{font-size:1rem;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f0f0f0}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:.9rem}
+.set-row:last-child{border-bottom:none}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag-it{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:.82rem;background:#f0f0f0;color:#333}
+.tag-it .tdot{width:8px;height:8px;border-radius:50%}
+.tag-it .rm{cursor:pointer;color:#aaa;font-size:.9rem}
+.tag-it .rm:hover{color:#0d1b4b}
+#toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#0d1b4b;color:#fff;padding:12px 20px;border-radius:10px;font-size:.88rem;max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.ok{border-left:4px solid #4CAF50}
+.toast.err{border-left:4px solid #0d1b4b}
+.spin-wrap{display:flex;align-items:center;justify-content:center;padding:40px;color:#aaa;gap:8px}
+.spin{width:20px;height:20px;border:2px solid #eee;border-top-color:#1a3a8f;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.money{font-family:monospace;font-weight:600}
+.empty{text-align:center;padding:40px;color:#aaa}
+.chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:.8rem;background:#f0f2f5;color:#555}
+.divider{height:1px;background:#f0f0f0;margin:16px 0}
+.muted{color:#aaa;font-size:.85rem}
+
+/* ===== DAG ===== */
+.dag-wrap{overflow-x:auto;padding:20px 4px;background:#f8f9ff;border-radius:10px;margin-bottom:20px}
+.dag-flow{display:flex;align-items:center;gap:0;min-width:max-content;padding:0 8px}
+.dag-node{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer}
+.dag-box{padding:10px 14px;border-radius:10px;font-size:.8rem;font-weight:600;text-align:center;width:110px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid transparent;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.dag-box:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.dag-box.done{background:#e8f5e9;border-color:#4CAF50;color:#2e7d32}
+.dag-box.in_progress{background:#fff3e0;border-color:#FF9800;color:#e65100}
+.dag-box.todo{background:#f5f5f5;border-color:#bdbdbd;color:#757575}
+.dag-box.rejected{background:#ffebee;border-color:#f44336;color:#c62828}
+.dag-name{font-size:.78rem;font-weight:700;line-height:1.3;word-break:break-word;text-align:center}
+.dag-assignee{font-size:.72rem;font-weight:400;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.dag-status-dot{width:8px;height:8px;border-radius:50%;margin:0 auto}
+.dag-arrow{display:flex;align-items:center;padding:0 4px;color:#bbb;font-size:1.1rem;flex-shrink:0;margin-top:-18px}
+.dag-order{font-size:.65rem;color:#aaa;font-weight:400}
+.dag-icon{font-size:1rem;line-height:1}
+
+/* ===== BOTTOM NAV (mobile) ===== */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;z-index:200}
+.bn-item{flex:1;padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:#aaa;cursor:pointer;transition:.15s}
+.bn-item.active{color:#0d1b4b}
+.bn-icon{font-size:19px;line-height:1}
+
+/* ===== JOB CARD MOBILE ===== */
+.job-card-m{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:3px solid #ddd;cursor:pointer;transition:.15s}
+.job-card-m:active{opacity:.85}
+.jcm-avt{width:44px;height:44px;border-radius:8px;background:#dce5f5;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden}
+.jcm-avt img{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block}
+.jcm-body{flex:1;min-width:0}
+.jcm-code{font-size:10px;color:#aaa;margin-bottom:1px}
+.jcm-name{font-size:13px;font-weight:600;color:#0d1b4b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jcm-customer{font-size:11px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jcm-footer{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:8px}
+.jcm-meta{font-size:10px;color:#aaa;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== TASK CARD MOBILE (manager view) ===== */
+.task-card-m{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:.15s}
+.task-card-m:active{opacity:.85}
+.tcm-name{font-size:13px;font-weight:600;color:#0d1b4b}
+.tcm-job{font-size:11px;color:#555;margin-top:3px}
+.tcm-footer{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:8px}
+.tcm-meta{font-size:10px;color:#aaa;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== TABLET: sidebar icon-only ===== */
+@media(max-width:1024px) and (min-width:768px){
+  #sidebar{width:56px}
+  #main{margin-left:56px}
+  .sidebar-logo{padding:14px 0;text-align:center}
+  .sidebar-logo h2{font-size:.85rem;letter-spacing:.05em}
+  .sidebar-logo p,.sidebar-user,.sidebar-footer{display:none}
+  .nav-item{padding:12px 0;justify-content:center}
+  .nav-lbl{display:none}
+}
+
+/* ===== MOBILE: bottom nav, full-width cards ===== */
+@media(max-width:767px){
+  input,select,textarea{font-size:16px!important}
+  body{overflow-x:hidden}
+  #sidebar{display:none}
+  #main{margin-left:0;padding:12px 12px 72px;max-width:100vw;overflow-x:hidden}
+  #pg-dashboard,#pg-jobs,#pg-tasks,#pg-mytasks,#pg-settings{max-width:100%}
+  .task-card-m,.job-card-m,.emp-card{max-width:100%;overflow:hidden}
+  #bottom-nav{display:flex}
+  #toast-wrap{bottom:72px;right:12px}
+  .modal-bg{align-items:flex-end;padding:0}
+  .modal{max-width:100%;max-height:92vh;border-radius:16px 16px 0 0}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .row2,.row3{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .page-header{margin-bottom:14px}
+  .card-toolbar{flex-direction:column;align-items:stretch;gap:8px}
+  .card-toolbar input,.card-toolbar select{max-width:100%!important;width:100%}
+  .tbl-wrap table{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo"><h1>HaiLux</h1><p>Hệ thống quản lý công việc</p></div>
+    <div class="login-tabs">
+      <div class="login-tab active" id="tab-ql" onclick="switchTab('manager')">Quản lý</div>
+      <div class="login-tab" id="tab-nv" onclick="switchTab('employee')">Nhân viên</div>
+    </div>
+    <div id="form-manager">
+      <div class="form-group"><label>Mật khẩu</label><input type="password" id="inp-pw" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()">Đăng nhập</button>
+      <p class="login-error hidden" id="err-pw">Mật khẩu không đúng</p>
+    </div>
+    <div id="form-emp" class="hidden">
+      <div class="form-group"><label>Chọn tên của bạn</label><select id="sel-emp"><option value="">-- Chọn nhân viên --</option></select></div>
+      <button class="btn-primary" id="btn-login-emp" onclick="doLoginEmp()">Vào xem việc của tôi</button>
+      <p class="login-error hidden" id="err-emp">Vui lòng chọn tên</p>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div id="sidebar">
+    <div class="sidebar-logo"><h2>HaiLux</h2><p>Quản lý công việc</p></div>
+    <div class="sidebar-user" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px"><span class="muted" style="font-size:.8rem;flex-shrink:0">Xin chào,</span><strong id="sb-name" style="font-size:.85rem;overflow:hidden;text-overflow:ellipsis">—</strong></div>
+    <nav id="sb-nav"></nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="doLogout()">&#8592; Đăng xuất</button></div>
+  </div>
+  <div id="main">
+    <div id="pg-dashboard" class="hidden"></div>
+    <div id="pg-jobs" class="hidden"></div>
+    <div id="pg-tasks" class="hidden"></div>
+    <div id="pg-mytasks" class="hidden"></div>
+    <div id="pg-settings" class="hidden"></div>
+  </div>
+  <div id="bottom-nav"></div>
+</div>
+
+<div id="modal-wrap"></div>
+<div id="toast-wrap"></div>
+
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  toast('JS Error: ' + msg + ' (line ' + line + ')', 'err');
+  console.error(msg, err);
+};
+window.addEventListener('unhandledrejection', function(e) {
+  toast('Async Error: ' + (e.reason && e.reason.message || e.reason), 'err');
+  console.error(e.reason);
+});
+
+var APP = {
+  role: null,
+  user: null,
+  page: null,
+  users: [], statuses: [], taskTemplates: [], settings: [], jobs: [],
+  st: function(id) { return (this.statuses||[]).filter(function(s){return s.id===id;})[0] || null; },
+  stBy: function(type, label) { return (this.statuses||[]).filter(function(s){return s.entity_type===type&&s.label===label;})[0] || null; },
+  stList: function(type) { return (this.statuses||[]).filter(function(s){return s.entity_type===type;}); },
+  user_by_id: function(id) { return (this.users||[]).filter(function(u){return u.id===id;})[0] || null; },
+  emps: function() { return (this.users||[]).filter(function(u){return u.role==='employee';}); }
+};
+
+// ---- INIT ----
+window.onload = function() {
+  google.script.run
+    .withSuccessHandler(function(d) {
+      APP.users = d.users || [];
+      APP.statuses = d.statuses || [];
+      APP.taskTemplates = d.taskTemplates || [];
+      APP.settings = d.settings || [];
+      APP.categories = d.categories || [];
+      var sel = document.getElementById('sel-emp');
+      APP.emps().forEach(function(u) {
+        var o = document.createElement('option');
+        o.value = u.id; o.textContent = u.name; sel.appendChild(o);
+      });
+    })
+    .withFailureHandler(function(e){ toast('Lỗi kết nối: ' + e.message, 'err'); })
+    .getInitialData();
+};
+
+// ---- AUTH ----
+function switchTab(tab) {
+  document.getElementById('tab-ql').classList.toggle('active', tab === 'manager');
+  document.getElementById('tab-nv').classList.toggle('active', tab === 'employee');
+  document.getElementById('form-manager').classList.toggle('hidden', tab !== 'manager');
+  document.getElementById('form-emp').classList.toggle('hidden', tab !== 'employee');
+}
+
+function setLoginLoading(btnId, loading, label) {
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<div class="btn-spin"></div> Đang kiểm tra...' : (label || 'Đăng nhập');
+}
+
+function doLogin() {
+  var pw = document.getElementById('inp-pw').value;
+  setLoginLoading('btn-login', true);
+  document.getElementById('err-pw').classList.add('hidden');
+  google.script.run
+    .withSuccessHandler(function(ok) {
+      setLoginLoading('btn-login', false, 'Đăng nhập');
+      if (ok) { APP.role = 'manager'; APP.user = {name:'Quản lý', role:'manager'}; enterApp(); }
+      else { document.getElementById('err-pw').classList.remove('hidden'); }
+    })
+    .withFailureHandler(function(e){ setLoginLoading('btn-login', false, 'Đăng nhập'); toast(e.message,'err'); })
+    .verifyManagerPassword(pw);
+}
+
+function doLoginEmp() {
+  var id = document.getElementById('sel-emp').value;
+  if (!id) { document.getElementById('err-emp').classList.remove('hidden'); return; }
+  setLoginLoading('btn-login-emp', true);
+  APP.role = 'employee';
+  APP.user = APP.user_by_id(id);
+  setTimeout(enterApp, 100); // nhỏ delay để spinner kịp hiện
+}
+
+function isMobile() { return window.innerWidth < 768; }
+
+function enterApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('sb-name').textContent = APP.user.name;
+  var menu = APP.role === 'manager'
+    ? [{id:'dashboard',icon:'📊',lbl:'Dashboard'},{id:'jobs',icon:'👜',lbl:'Công việc'},{id:'tasks',icon:'📋',lbl:'Đầu việc'},{id:'settings',icon:'⚙️',lbl:'Cài đặt'}]
+    : [{id:'mytasks',icon:'✅',lbl:'Việc của tôi'}];
+  document.getElementById('sb-nav').innerHTML = menu.map(function(m) {
+    return '<div class="nav-item" id="nav-'+m.id+'" onclick="goTo(\''+m.id+'\')"><span>'+m.icon+'</span><span class="nav-lbl">'+m.lbl+'</span></div>';
+  }).join('');
+  document.getElementById('bottom-nav').innerHTML = menu.map(function(m) {
+    return '<div class="bn-item" id="bn-'+m.id+'" onclick="goTo(\''+m.id+'\')"><span class="bn-icon">'+m.icon+'</span>'+m.lbl+'</div>';
+  }).join('') + '<div class="bn-item" onclick="doLogout()"><span class="bn-icon">↩️</span>Đăng xuất</div>';
+  goTo(APP.role === 'manager' ? 'dashboard' : 'mytasks');
+}
+
+function doLogout() {
+  APP.role = null; APP.user = null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('inp-pw').value = '';
+  setLoginLoading('btn-login', false, 'Đăng nhập');
+  setLoginLoading('btn-login-emp', false, 'Vào xem việc của tôi');
+}
+
+function goTo(page) {
+  APP.page = page;
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var n = document.getElementById('nav-'+page); if(n) n.classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(function(el){ el.classList.remove('active'); });
+  var bn = document.getElementById('bn-'+page); if(bn) bn.classList.add('active');
+  document.querySelectorAll('#main > div').forEach(function(el){ el.classList.add('hidden'); });
+  var pg = document.getElementById('pg-'+page); if(pg) pg.classList.remove('hidden');
+  if (page === 'dashboard') renderDashboard();
+  else if (page === 'jobs') renderJobs();
+  else if (page === 'tasks') renderAllTasks();
+  else if (page === 'mytasks') renderMyTasks();
+  else if (page === 'settings') renderSettings();
+}
+
+// ---- DASHBOARD ----
+function defaultDashFilters() {
+  var to   = new Date();
+  var from = new Date(); from.setDate(from.getDate() - 90);
+  return { dateFrom: from.toISOString().split('T')[0], dateTo: to.toISOString().split('T')[0], category: '' };
+}
+var _dashFilters = defaultDashFilters();
+
+function renderDashboard() {
+  var el = document.getElementById('pg-dashboard');
+  // Filter bar (render ngay, không cần đợi server)
+  var cats = APP.categories || [];
+  var filterBar;
+  if (isMobile()) {
+    filterBar = '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)">';
+    filterBar += '<div style="display:flex;gap:8px;margin-bottom:8px">';
+    filterBar += '<input type="date" id="d-from" value="'+esc(_dashFilters.dateFrom)+'" style="flex:1;min-width:0" onchange="_dashFilters.dateFrom=this.value;loadDashboard()">';
+    filterBar += '<input type="date" id="d-to" value="'+esc(_dashFilters.dateTo)+'" style="flex:1;min-width:0" onchange="_dashFilters.dateTo=this.value;loadDashboard()">';
+    filterBar += '</div>';
+    filterBar += '<div style="display:flex;gap:8px">';
+    filterBar += '<select id="d-cat" style="flex:1;min-width:0" onchange="_dashFilters.category=this.value;loadDashboard()">';
+    filterBar += '<option value="">Tất cả loại KH</option>';
+    cats.forEach(function(c){ filterBar += '<option value="'+esc(c)+'"'+(_dashFilters.category===c?' selected':'')+'>'+esc(c)+'</option>'; });
+    filterBar += '</select>';
+    filterBar += '<button class="btn btn-sm btn-ghost" style="flex-shrink:0" onclick="_dashFilters=defaultDashFilters();renderDashboard()">↺</button>';
+    filterBar += '</div></div>';
+  } else {
+    filterBar = '<div style="background:#fff;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+    filterBar += '<span style="font-size:.85rem;font-weight:600;color:#555">Lọc:</span>';
+    filterBar += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">Từ</label><input type="date" id="d-from" value="'+esc(_dashFilters.dateFrom)+'" style="width:140px;padding:6px 10px;font-size:.83rem" onchange="_dashFilters.dateFrom=this.value;loadDashboard()"></div>';
+    filterBar += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">Đến</label><input type="date" id="d-to" value="'+esc(_dashFilters.dateTo)+'" style="width:140px;padding:6px 10px;font-size:.83rem" onchange="_dashFilters.dateTo=this.value;loadDashboard()"></div>';
+    filterBar += '<select id="d-cat" style="padding:6px 10px;font-size:.83rem;max-width:160px" onchange="_dashFilters.category=this.value;loadDashboard()">';
+    filterBar += '<option value="">Tất cả loại KH</option>';
+    cats.forEach(function(c){ filterBar += '<option value="'+esc(c)+'"'+(_dashFilters.category===c?' selected':'')+'>'+esc(c)+'</option>'; });
+    filterBar += '</select>';
+    if (_dashFilters.dateFrom||_dashFilters.dateTo||_dashFilters.category) {
+      filterBar += '<button class="btn btn-sm btn-ghost" onclick="_dashFilters=defaultDashFilters();renderDashboard()">↺ Mặc định</button>';
+    }
+    filterBar += '</div>';
+  }
+  el.innerHTML = filterBar + '<div id="dash-content">'+spinner()+'</div>';
+  loadDashboard();
+}
+
+function loadDashboard() {
+  var el = document.getElementById('dash-content');
+  if (el) el.innerHTML = spinner();
+  google.script.run
+    .withSuccessHandler(function(s) {
+      var el2 = document.getElementById('dash-content');
+      if (!el2) return;
+      var fmt = function(n){ return Number(n).toLocaleString('vi-VN')+'đ'; };
+      var html = '<div class="page-header"><div><h1>Dashboard</h1><p class="sub">Tổng quan công việc</p></div></div>';
+      var inProgressCount = Object.keys(s.tasks.by_status).reduce(function(sum,k){ return sum + (k.toLowerCase().replace(/\s/g,'')==='đanglàm' ? s.tasks.by_status[k] : 0); }, 0);
+      if (isMobile()) {
+        // Stat bars: 4 hàng ngang
+        var statBars = [
+          {color:'#2196F3', val:s.jobs.total,       lbl:'Tổng Job',      sub:s.jobs.overdue+' quá hạn'},
+          {color:'#FF9800', val:s.tasks.total,       lbl:'Tổng Task',     sub:inProgressCount+' đang làm'},
+          {color:'#4CAF50', val:fmt(s.revenue.total),lbl:'Doanh thu',     sub:fmt(s.revenue.completed)+' HT'},
+          {color:'#0d1b4b', val:s.jobs.overdue,      lbl:'Job quá hạn',   sub:'Cần xử lý ngay'},
+        ];
+        html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">';
+        statBars.forEach(function(b){
+          html += '<div style="background:#fff;border-radius:10px;border-left:4px solid '+b.color+';padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06)">';
+          html += '<div style="display:flex;align-items:center;gap:12px">';
+          html += '<span style="font-size:1.5rem;font-weight:700;color:#0d1b4b;min-width:40px">'+b.val+'</span>';
+          html += '<span style="font-size:.85rem;font-weight:500;color:#444">'+b.lbl+'</span></div>';
+          html += '<span style="font-size:.75rem;color:#aaa;text-align:right">'+b.sub+'</span></div>';
+        });
+        html += '</div>';
+        // Status grids 2 col
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
+        html += '<div class="card"><div class="card-body" style="padding:14px"><strong style="font-size:.85rem">Trạng thái Job</strong>';
+        Object.keys(s.jobs.by_status).forEach(function(lbl) {
+          var st = APP.stList('job').filter(function(x){ return x.label===lbl; })[0];
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:.82rem"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:'+(st?st.color:'#ccc')+';flex-shrink:0;display:inline-block"></span>'+lbl+'</span><strong>'+s.jobs.by_status[lbl]+'</strong></div>';
+        });
+        html += '</div></div>';
+        html += '<div class="card"><div class="card-body" style="padding:14px"><strong style="font-size:.85rem">Trạng thái Task</strong>';
+        Object.keys(s.tasks.by_status).forEach(function(lbl) {
+          var st = APP.stList('task').filter(function(x){ return x.label===lbl; })[0];
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:.82rem"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:'+(st?st.color:'#ccc')+';flex-shrink:0;display:inline-block"></span>'+lbl+'</span><strong>'+s.tasks.by_status[lbl]+'</strong></div>';
+        });
+        html += '</div></div></div>';
+        // Employee cards (mobile)
+        html += '<div style="margin-bottom:8px"><strong style="font-size:.9rem;color:#0d1b4b">Thống kê nhân viên</strong></div>';
+        s.employees.forEach(function(e) {
+          html += '<div style="background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)">';
+          html += '<div style="font-weight:600;font-size:.92rem;margin-bottom:8px">'+esc(e.name)+'</div>';
+          html += '<div style="display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid #f0f0f0">';
+          html += '<div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #f0f0f0"><div style="font-size:1.1rem;font-weight:700">'+e.total+'</div><div style="font-size:.72rem;color:#aaa">Tổng</div></div>';
+          html += '<div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #f0f0f0"><div style="font-size:1.1rem;font-weight:700;color:#FF9800">'+e.in_progress+'</div><div style="font-size:.72rem;color:#aaa">Đang làm</div></div>';
+          html += '<div style="flex:1;text-align:center;padding:6px 4px;border-right:1px solid #f0f0f0"><div style="font-size:1.1rem;font-weight:700">'+e.todo+'</div><div style="font-size:.72rem;color:#aaa">Chưa làm</div></div>';
+          html += '<div style="flex:1;text-align:center;padding:6px 4px"><div style="font-size:1.1rem;font-weight:700;color:#4CAF50">'+e.done+'</div><div style="font-size:.72rem;color:#aaa">Hoàn thành</div></div>';
+          html += '</div></div>';
+        });
+      } else {
+        html += '<div class="stats-grid">';
+        html += '<div class="stat-card blue"><div class="stat-val">'+s.jobs.total+'</div><div class="stat-lbl">Tổng số Job</div><div class="stat-sub">'+s.jobs.overdue+' quá hạn</div></div>';
+        html += '<div class="stat-card orange"><div class="stat-val">'+s.tasks.total+'</div><div class="stat-lbl">Tổng số Task</div><div class="stat-sub">'+inProgressCount+' đang làm</div></div>';
+        html += '<div class="stat-card green"><div class="stat-val money">'+fmt(s.revenue.total)+'</div><div class="stat-lbl">Tổng doanh thu</div><div class="stat-sub money">'+fmt(s.revenue.completed)+' hoàn thành</div></div>';
+        html += '<div class="stat-card red"><div class="stat-val">'+s.jobs.overdue+'</div><div class="stat-lbl">Job quá hạn</div><div class="stat-sub">Cần xử lý ngay</div></div>';
+        html += '</div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">';
+        html += '<div class="card"><div class="card-body"><h3 style="font-size:.95rem;font-weight:700;margin-bottom:14px">Trạng thái Job</h3>';
+        Object.keys(s.jobs.by_status).forEach(function(lbl) {
+          var st = APP.stList('job').filter(function(x){ return x.label===lbl; })[0];
+          html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:'+(st?st.color:'#ccc')+';display:inline-block"></span>'+lbl+'</span><strong>'+s.jobs.by_status[lbl]+'</strong></div>';
+        });
+        html += '</div></div>';
+        html += '<div class="card"><div class="card-body"><h3 style="font-size:.95rem;font-weight:700;margin-bottom:14px">Trạng thái Task</h3>';
+        Object.keys(s.tasks.by_status).forEach(function(lbl) {
+          var st = APP.stList('task').filter(function(x){ return x.label===lbl; })[0];
+          html += '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:'+(st?st.color:'#ccc')+';display:inline-block"></span>'+lbl+'</span><strong>'+s.tasks.by_status[lbl]+'</strong></div>';
+        });
+        html += '</div></div></div>';
+        html += '<div class="card"><div class="card-toolbar"><strong>Thống kê nhân viên</strong></div><div class="tbl-wrap"><table><thead><tr><th>Nhân viên</th><th>Tổng</th><th>Đang làm</th><th>Chưa làm</th><th>Hoàn thành</th></tr></thead><tbody>';
+        s.employees.forEach(function(e) {
+          html += '<tr><td><strong>'+e.name+'</strong></td><td>'+e.total+'</td><td><span class="badge" style="background:#fff3e0;color:#FF9800">'+e.in_progress+'</span></td><td>'+e.todo+'</td><td><span class="badge" style="background:#e8f5e9;color:#4CAF50">'+e.done+'</span></td></tr>';
+        });
+        html += '</tbody></table></div></div>';
+      }
+      el2.innerHTML = html;
+    })
+    .withFailureHandler(function(e){ var c=document.getElementById('dash-content'); if(c) c.innerHTML='<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getDashboardStats(_dashFilters);
+}
+
+// ---- JOBS ----
+var _jobs = [];
+var _jobSearch = '', _jobStatus = '', _jobCategory = '';
+
+function renderJobs() {
+  var el = document.getElementById('pg-jobs');
+  el.innerHTML = spinner();
+  google.script.run
+    .withSuccessHandler(function(jobs) {
+      _jobs = jobs || []; APP.jobs = _jobs;
+      var jst = APP.stList('job');
+      var mobile = isMobile();
+      var html = '<div class="page-header"><div><h1>Công việc</h1><p class="sub">Quản lý tất cả job</p></div>';
+      html += '<button class="btn btn-blue" onclick="openJobModal(\'\')">+ Thêm Job</button></div>';
+      if (mobile) {
+        html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+        html += '<input placeholder="Tìm mã / tên / khách hàng..." oninput="_jobSearch=this.value;renderJobsTable()" value="'+esc(_jobSearch)+'">';
+        html += '<div style="display:flex;gap:8px">';
+        html += '<select style="flex:1" onchange="_jobStatus=this.value;renderJobsTable()">';
+        html += '<option value="">Tất cả trạng thái</option>';
+        jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(s.id===_jobStatus?' selected':'')+'>'+s.label+'</option>'; });
+        html += '</select>';
+        var cats = APP.categories || [];
+        html += '<select style="flex:1" onchange="_jobCategory=this.value;renderJobsTable()">';
+        html += '<option value="">Tất cả loại KH</option>';
+        cats.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
+        html += '</select></div></div>';
+        html += '<div id="jobs-cards"></div>';
+      } else {
+        html += '<div class="card"><div class="card-toolbar">';
+        html += '<input style="max-width:280px" placeholder="Tìm mã / tên / khách hàng..." oninput="_jobSearch=this.value;renderJobsTable()" value="'+esc(_jobSearch)+'">';
+        html += '<select style="max-width:160px" onchange="_jobStatus=this.value;renderJobsTable()">';
+        html += '<option value="">Tất cả trạng thái</option>';
+        jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(s.id===_jobStatus?' selected':'')+'>'+s.label+'</option>'; });
+        html += '</select>';
+        var cats2 = APP.categories || [];
+        html += '<select style="max-width:150px" onchange="_jobCategory=this.value;renderJobsTable()">';
+        html += '<option value="">Tất cả loại KH</option>';
+        cats2.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
+        html += '</select></div>';
+        html += '<div class="tbl-wrap"><table><thead><tr><th>Mã</th><th>Tên SP</th><th>Loại KH</th><th>Ngày nhận</th><th>Deadline</th><th>Doanh thu</th><th>Tasks</th><th>NV</th><th>Trạng thái</th><th></th></tr></thead><tbody id="jobs-tbody"></tbody></table></div></div>';
+      }
+      el.innerHTML = html;
+      renderJobsTable();
+    })
+    .withFailureHandler(function(e){ el.innerHTML = '<div style="padding:20px;color:red"><strong>Server Error:</strong> '+e.message+'</div>'; })
+    .getJobsWithStats();
+}
+
+function renderJobsTable() {
+  if (!_jobs) return;
+  if (isMobile()) { renderJobsCards(); return; }
+  var q = (_jobSearch||'').toLowerCase();
+  var rows = _jobs.filter(function(j) {
+    var ms  = !q || (j.code||'').toLowerCase().indexOf(q)>=0 || (j.name||'').toLowerCase().indexOf(q)>=0 || (j.customer_name||'').toLowerCase().indexOf(q)>=0;
+    var mst = !_jobStatus   || j.status_id === _jobStatus;
+    var mct = !_jobCategory || (j.category||'') === _jobCategory;
+    return ms && mst && mct;
+  });
+  var tbody = document.getElementById('jobs-tbody');
+  if (!tbody) return;
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="10"><div class="empty">Không có job nào</div></td></tr>'; return; }
+  var html = '';
+  rows.forEach(function(j) {
+    var st   = APP.st(j.status_id);
+    var norm = (st ? st.label : '').toLowerCase().replace(/\s/g,'');
+    var over = j.deadline && new Date(j.deadline) < new Date() && norm !== 'hoànthành' && norm !== 'hủy';
+    var daysLeft = j.deadline ? Math.ceil((new Date(j.deadline)-new Date())/86400000) : null;
+    html += '<tr>';
+    html += '<td><span style="font-weight:700;color:#0d1b4b;font-size:.88rem">'+esc(j.code||'—')+'</span></td>';
+    var thumbHtml = j.avatar_id
+      ? '<img class="job-thumb" src="https://lh3.googleusercontent.com/d/'+j.avatar_id+'" onclick="event.stopPropagation();openLightbox(\'https://lh3.googleusercontent.com/d/'+j.avatar_id+'\',\'https://drive.google.com/file/d/'+j.avatar_id+'/view\')">'
+      : '<div class="job-thumb-ph">📦</div>';
+    html += '<td><div style="display:flex;align-items:center;gap:10px">'+thumbHtml+'<div><div style="font-weight:500">'+esc(j.name||'—')+'</div>'+(j.customer_name?'<div style="font-size:.78rem;color:#aaa;margin-top:2px">'+esc(j.customer_name)+'</div>':'')+'</div></div></td>';
+    html += '<td>'+(j.category?'<span style="background:#eef2ff;color:#1a3a8f;padding:3px 9px;border-radius:12px;font-size:.78rem;font-weight:500;white-space:nowrap">'+esc(j.category)+'</span>':'<span style="color:#ccc">—</span>')+'</td>';
+    html += '<td style="font-size:.83rem;color:#888">'+(j.received_date?fmtDate(j.received_date):'—')+'</td>';
+    html += '<td>'+(j.deadline
+      ? '<div style="font-size:.85rem;font-weight:'+(over?'700':'500')+';color:'+(over?'#0d1b4b':'#333')+'">'
+        +fmtDate(j.deadline)+'</div>'
+        +(daysLeft!==null && !over && daysLeft>=0 && daysLeft<=7 ? '<div style="font-size:.75rem;color:#FF9800">còn '+daysLeft+' ngày</div>'
+        : over ? '<div style="font-size:.75rem;color:#0d1b4b">quá '+Math.abs(daysLeft)+' ngày</div>' : '')
+      : '<span style="color:#ccc">—</span>')+'</td>';
+    html += '<td><span style="font-family:monospace;font-weight:600;font-size:.88rem">'+(j.revenue?Number(j.revenue).toLocaleString('vi-VN')+'đ':'<span style="color:#ccc">—</span>')+'</span></td>';
+    html += '<td><span style="background:#e0e8ff;color:#1a3a8f;padding:3px 10px;border-radius:12px;font-size:.82rem;font-weight:600">'+(j.task_count||0)+'</span></td>';
+    html += '<td><span style="background:#e8f5e9;color:#388e3c;padding:3px 10px;border-radius:12px;font-size:.82rem;font-weight:600">'+(j.assignee_count||0)+'</span></td>';
+    html += '<td>'+(st?'<span class="badge" style="background:'+st.color+'22;color:'+st.color+';border:1px solid '+st.color+'44">'+st.label+'</span>':'<span style="color:#ccc">—</span>')+'</td>';
+    html += '<td style="white-space:nowrap">';
+    html += '<button class="btn btn-sm" style="background:#eef2ff;color:#1a3a8f;border:1px solid #b8c8f0" onclick="openJobDetail(\''+j.id+'\')">Chi tiết</button> ';
+    html += '<button class="btn btn-sm btn-ghost" onclick="openJobModal(\''+j.id+'\')">✏️</button> ';
+    html += '<button class="btn btn-sm btn-ghost" style="color:#0d1b4b" onclick="delJob(\''+j.id+'\')">🗑</button>';
+    html += '</td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function renderJobsCards() {
+  var el = document.getElementById('jobs-cards');
+  if (!el) return;
+  var q = (_jobSearch||'').toLowerCase();
+  var rows = _jobs.filter(function(j) {
+    var ms  = !q || (j.code||'').toLowerCase().indexOf(q)>=0 || (j.name||'').toLowerCase().indexOf(q)>=0 || (j.customer_name||'').toLowerCase().indexOf(q)>=0;
+    var mst = !_jobStatus   || j.status_id === _jobStatus;
+    var mct = !_jobCategory || (j.category||'') === _jobCategory;
+    return ms && mst && mct;
+  });
+  if (!rows.length) { el.innerHTML = '<div class="empty">Không có job nào</div>'; return; }
+  var html = '';
+  rows.forEach(function(j) {
+    var st   = APP.st(j.status_id);
+    var norm = (st ? st.label : '').toLowerCase().replace(/\s/g,'');
+    var over = j.deadline && new Date(j.deadline) < new Date() && norm !== 'hoànthành' && norm !== 'hủy';
+    var daysLeft = j.deadline ? Math.ceil((new Date(j.deadline)-new Date())/86400000) : null;
+    var color = st ? st.color : '#ddd';
+    var avtHtml = j.avatar_id
+      ? '<div class="jcm-avt" onclick="event.stopPropagation();viewImg(\''+j.avatar_id+'\')" style="cursor:zoom-in"><img src="https://lh3.googleusercontent.com/d/'+j.avatar_id+'" onerror="this.parentNode.innerHTML=\'📦\'"></div>'
+      : '<div class="jcm-avt">📦</div>';
+    var metaParts = [];
+    if (j.received_date) metaParts.push('Nhận '+fmtDate(j.received_date));
+    if (j.deadline) metaParts.push((over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft!==null&&daysLeft<=7?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':'hạn '+fmtDate(j.deadline))));
+    html += '<div class="job-card-m" style="border-left-color:'+color+'" onclick="openJobDetail(\''+j.id+'\')">';
+    html += avtHtml;
+    html += '<div class="jcm-body">';
+    html += '<div class="jcm-code">'+esc(j.code||'')+(j.category?' · '+esc(j.category):'')+'</div>';
+    html += '<div class="jcm-name">'+esc(j.name||'—')+'</div>';
+    if (j.customer_name) html += '<div class="jcm-customer">'+esc(j.customer_name)+(j.customer_contact?' · '+esc(j.customer_contact):'')+'</div>';
+    html += '<div class="jcm-footer"><span class="jcm-meta">'+metaParts.join(' · ')+'</span>';
+    if (st) html += '<span class="badge" style="background:'+st.color+'22;color:'+st.color+';flex-shrink:0">'+st.label+'</span>';
+    html += '</div></div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function openJobModal(jobId) {
+  var job = jobId ? _jobs.filter(function(j){ return j.id===jobId; })[0] : null;
+  var jst = APP.stList('job');
+  showModal(spinner());
+  function renderJobForm(autoCode) {
+  var html = '<div class="modal-hd"><h3>'+(job?'Sửa Job':'Thêm Job mới')+'</h3><button class="btn-x" onclick="closeModal()">✕</button></div>';
+  html += '<div class="modal-bd">';
+  html += '<div class="row2"><div class="fg"><label>Mã SP</label><input id="f-code" value="'+esc(job&&job.code||autoCode||'')+'" placeholder="'+esc(autoCode||'S0001')+'"></div>';
+  html += '<div class="fg"><label>Phân loại</label><input id="f-cat" list="cat-list" value="'+esc(job&&job.category||'')+'" placeholder="Khách lẻ, Khách sỉ..."><datalist id="cat-list">'+(APP.categories||[]).map(function(c){return'<option value="'+esc(c)+'">';}).join('')+'</datalist></div></div>';
+  html += '<div class="row2 row1"><div class="fg"><label>Tên sản phẩm *</label><input id="f-name" value="'+esc(job&&job.name||'')+'" placeholder="Túi Hermès Birkin"></div></div>';
+  html += '<div class="row2"><div class="fg"><label>Khách hàng</label><input id="f-cname" value="'+esc(job&&job.customer_name||'')+'"></div>';
+  html += '<div class="fg"><label>Liên hệ</label><input id="f-ccontact" value="'+esc(job&&job.customer_contact||'')+'" placeholder="SĐT/Zalo/Page"></div></div>';
+  html += '<div class="row3"><div class="fg"><label>Ngày nhận</label><input type="date" id="f-rdate" value="'+fmtDateInput(job&&job.received_date||'')+'"></div>';
+  html += '<div class="fg"><label>Deadline</label><input type="date" id="f-dl" value="'+fmtDateInput(job&&job.deadline||'')+'"></div>';
+  html += '<div class="fg"><label>Báo giá (đ)</label><input type="number" id="f-rev" value="'+esc(job&&job.revenue||'')+'" placeholder="1500000"></div></div>';
+  html += '<div class="row2 row1"><div class="fg"><label>Hạng mục sửa</label><textarea id="f-scope" placeholder="- Thay da&#10;- Mạ khóa">'+esc(job&&job.repair_scope||'')+'</textarea></div></div>';
+  html += '<div class="row2"><div class="fg"><label>Trạng thái</label><select id="f-st">';
+  jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(job&&job.status_id===s.id?' selected':'')+'>'+s.label+'</option>'; });
+  html += '</select></div><div class="fg"><label>Ghi chú</label><input id="f-notes" value="'+esc(job&&job.notes||'')+'"></div></div>';
+  // Avatar upload
+  html += '<div class="row2 row1"><div class="fg"><label>Ảnh đại diện</label>';
+  html += '<div style="display:flex;align-items:center;gap:12px;margin-top:4px">';
+  if (job && job.avatar_id) {
+    html += '<img id="f-avt-preview" src="https://lh3.googleusercontent.com/d/'+job.avatar_id+'" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #eee">';
+  } else {
+    html += '<div id="f-avt-preview" style="width:56px;height:56px;border-radius:8px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:1.4rem">📦</div>';
+  }
+  html += '<div><button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById(\'f-avt-input\').click()">📷 Chọn ảnh</button>';
+  html += '<input type="file" id="f-avt-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">';
+  html += '<div id="f-avt-name" style="font-size:.78rem;color:#aaa;margin-top:4px"></div></div></div>';
+  html += '</div></div>';
+  html += '</div><div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button id="btn-save-job" class="btn btn-blue" onclick="saveJob(\''+esc(jobId||'')+'\')">Lưu</button></div>';
+  setModal(html);
+  } // end renderJobForm
+
+  if (job) {
+    renderJobForm('');
+  } else {
+    google.script.run
+      .withSuccessHandler(function(code){ renderJobForm(code); })
+      .withFailureHandler(function(){ renderJobForm(''); })
+      .generateJobCode();
+  }
+}
+
+function saveJob(jobId) {
+  var data = {
+    code: gv('f-code'), name: gv('f-name'), category: gv('f-cat'),
+    customer_name: gv('f-cname'), customer_contact: gv('f-ccontact'),
+    received_date: gv('f-rdate'), deadline: gv('f-dl'),
+    revenue: gv('f-rev'), repair_scope: gv('f-scope'),
+    status_id: gv('f-st'), notes: gv('f-notes')
+  };
+  if (!data.name) { toast('Vui lòng nhập tên sản phẩm','err'); return; }
+  var btn = document.getElementById('btn-save-job');
+  if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
+
+  function doSave(avatarId) {
+    if (avatarId) data.avatar_id = avatarId;
+    var fn   = jobId ? 'updateJob' : 'createJob';
+    var args = jobId ? [jobId, data] : [data];
+    google.script.run
+      .withSuccessHandler(function() { _pendingAvatarFile=null; toast(jobId?'Đã cập nhật':'Đã tạo job','ok'); closeModal(); renderJobs(); })
+      .withFailureHandler(function(e){ if(btn){btn.disabled=false;btn.textContent='Lưu';} toast(e.message,'err'); })
+    [fn].apply(google.script.run, args);
+  }
+
+  if (_pendingAvatarFile) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      google.script.run
+        .withSuccessHandler(function(res) { doSave(res.drive_file_id); })
+        .withFailureHandler(function(){ doSave(null); })
+        .uploadJobAvatarOnly(b64, _pendingAvatarFile.type, _pendingAvatarFile.name, APP.user?APP.user.name:'');
+    };
+    reader.readAsDataURL(_pendingAvatarFile);
+  } else {
+    doSave(null);
+  }
+}
+
+function delJob(id) {
+  if (!confirm('Xóa job này sẽ xóa tất cả task liên quan. Xác nhận?')) return;
+  google.script.run
+    .withSuccessHandler(function(){ toast('Đã xóa','ok'); renderJobs(); })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .deleteJob(id);
+}
+
+// ---- JOB DETAIL ----
+function openJobDetail(jobId) {
+  showModal(spinner());
+  google.script.run
+    .withSuccessHandler(function(job) {
+      var jst = APP.stList('job');
+      var tst = APP.stList('task');
+      var over = job.deadline && new Date(job.deadline)<new Date() && job.status && job.status.label!=='Hoàn thành';
+      var avatarId = job.avatar_id || '';
+      var avatarHtml = avatarId
+        ? '<img src="https://lh3.googleusercontent.com/d/'+avatarId+'" style="width:80px;height:80px;object-fit:cover;border-radius:12px;border:1px solid #eee;cursor:zoom-in;flex-shrink:0" onclick="openLightbox(\'https://lh3.googleusercontent.com/d/'+avatarId+'\',\'https://drive.google.com/file/d/'+avatarId+'/view\')">'
+        : '<div style="width:80px;height:80px;border-radius:12px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">📦</div>';
+      var html = '<div class="modal-hd">'
+        + '<div style="display:flex;align-items:center;gap:12px">'+avatarHtml+'<div><h3 style="margin:0">'+esc(job.code)+' — '+esc(job.name)+'</h3><p style="font-size:.82rem;color:#aaa;margin-top:4px">'+esc(job.category||'')+'</p></div></div>'
+        + '<button class="btn-x" onclick="closeModal()">✕</button></div>';
+      html += '<div class="modal-bd">';
+      html += '<div class="detail-grid">';
+      html += '<div class="detail-box"><h4>Thông tin</h4>';
+      html += '<div class="detail-row"><span class="lbl">Mã SP</span><span class="val">'+esc(job.code||'—')+'</span></div>';
+      html += '<div class="detail-row"><span class="lbl">Khách hàng</span><span class="val">'+esc(job.customer_name||'—')+'</span></div>';
+      html += '<div class="detail-row"><span class="lbl">Liên hệ</span><span class="val">'+esc(job.customer_contact||'—')+'</span></div>';
+      html += '<div class="detail-row"><span class="lbl">Báo giá</span><span class="val money">'+(job.revenue?Number(job.revenue).toLocaleString('vi-VN')+'đ':'—')+'</span></div>';
+      html += '</div>';
+      html += '<div class="detail-box"><h4>Tiến độ</h4>';
+      html += '<div class="detail-row"><span class="lbl">Ngày nhận</span><span class="val">'+fmtDate(job.received_date)+'</span></div>';
+      html += '<div class="detail-row"><span class="lbl">Deadline</span><span class="val '+(over?'badge badge-red':'')+'">'+fmtDate(job.deadline)+'</span></div>';
+      html += '<div class="detail-row"><span class="lbl">Trạng thái</span><span class="val"><select onchange="updJobStatus(\''+job.id+'\',this.value)" style="width:auto;padding:4px 8px;font-size:.85rem">';
+      jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(job.status_id===s.id?' selected':'')+'>'+s.label+'</option>'; });
+      html += '</select></span></div></div></div>';
+      if (job.repair_scope) { html += '<div class="detail-box" style="margin-top:12px"><h4>Hạng mục sửa</h4><p style="font-size:.88rem;white-space:pre-line">'+esc(job.repair_scope)+'</p></div>'; }
+      // Avatar upload (thay ảnh)
+      html += '<div style="margin-top:16px;display:flex;align-items:center;gap:12px">';
+      if (job.avatar_id) {
+        html += '<img src="https://lh3.googleusercontent.com/d/'+job.avatar_id+'" style="width:60px;height:60px;object-fit:cover;border-radius:10px;border:1px solid #eee;cursor:zoom-in" onclick="openLightbox(\'https://lh3.googleusercontent.com/d/'+job.avatar_id+'\',\'https://drive.google.com/file/d/'+job.avatar_id+'/view\')">';
+      }
+      html += '<div><div style="font-size:.82rem;color:#888;margin-bottom:4px">Ảnh đại diện</div>';
+      html += '<button class="btn btn-sm btn-outline" onclick="document.getElementById(\'av-'+job.id+'\').click()">📷 '+(job.avatar_id?'Đổi ảnh':'Tải ảnh lên')+'</button>';
+      html += '<input type="file" id="av-'+job.id+'" accept="image/*" style="display:none" onchange="uploadAvatar(this,\''+job.id+'\')"></div>';
+      html += '</div>';
+      html += '<div style="margin-top:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><strong>Luồng Task</strong></div>';
+      html += renderDAG(job.tasks, tst);
+      html += '</div>';
+      html += '<div style="margin-top:4px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><strong>Chi tiết Task ('+job.tasks.length+')</strong><button class="btn btn-sm btn-blue" onclick="openAddTask(\''+job.id+'\')">+ Thêm Task</button></div>';
+      html += '<div id="tl-'+job.id+'">';
+      html += renderTasksHtml(job.tasks, tst, job);
+      html += '</div></div>';
+      html += '</div>';
+      setModal(html);
+      // Load ảnh sau khi DOM sẵn sàng
+    })
+    .withFailureHandler(function(e){ setModal('<p class="empty">Lỗi: '+e.message+'</p>'); })
+    .getJobWithDetails(jobId);
+}
+
+function updJobStatus(jobId, statusId) {
+  google.script.run
+    .withSuccessHandler(function(){ toast('Đã cập nhật','ok'); renderJobs(); })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .updateJob(jobId, {status_id: statusId});
+}
+
+function renderDAG(tasks, tst) {
+  if (!tasks || !tasks.length) return '';
+  var sorted = tasks.slice().sort(function(a,b){ return Number(a.order)-Number(b.order); });
+
+  var nodes = sorted.map(function(t) {
+    var st = tst.filter(function(s){ return s.id===t.status_id; })[0];
+    var stLabel = st ? st.label : '';
+    var nl = (stLabel||'').toLowerCase().replace(/\s/g,'');
+    var cls = 'todo', icon = '○';
+    if (nl==='hoànthành'||nl==='đãxong')    { cls='done';        icon='✓'; }
+    else if (nl==='đanglàm')                { cls='in_progress'; icon='⟳'; }
+    else if (nl==='từchối'||nl==='reject')  { cls='rejected';    icon='✕'; }
+    var asgn = APP.user_by_id(t.assignee_id);
+    var asgnName = asgn ? asgn.name : '—';
+    return '<div class="dag-node" title="'+(stLabel||'Chưa làm')+' · '+asgnName+'">'
+      + '<div class="dag-box '+cls+'">'
+      +   '<div class="dag-icon">'+icon+'</div>'
+      +   '<div class="dag-name">'+esc(t.name||'—')+'</div>'
+      +   '<div class="dag-assignee">'+esc(asgnName)+'</div>'
+      + '</div>'
+      + '<div class="dag-order">#'+( t.order||'?')+'</div>'
+      + '</div>';
+  });
+
+  var parts = [];
+  nodes.forEach(function(n, i) {
+    parts.push(n);
+    if (i < nodes.length-1) parts.push('<div class="dag-arrow">→</div>');
+  });
+
+  return '<div class="dag-wrap"><div class="dag-flow">'+parts.join('')+'</div></div>';
+}
+
+function renderTasksHtml(tasks, tst, job) {
+  if (!tasks || !tasks.length) return '<div class="empty">Chưa có task nào</div>';
+  var html = '';
+  tasks.forEach(function(t, i) {
+    var st = tst.filter(function(s){ return s.id===t.status_id; })[0];
+    var asgn = APP.user_by_id(t.assignee_id);
+    var dl = t.deadline || (job&&job.deadline);
+    var over = dl && new Date(dl)<new Date() && st && st.label!=='Hoàn thành';
+    html += '<div class="task-item">';
+    html += '<div class="task-num">'+(t.order||i+1)+'</div>';
+    html += '<div class="task-info"><div class="task-name">'+esc(t.name||'—')+'</div>';
+    html += '<div class="task-meta">'+esc(asgn?asgn.name:'Chưa phân công')+' · '+(dl?fmtDate(dl):'Theo job')+'</div>';
+    if (t.emp_notes) html += '<div style="font-size:.78rem;color:#1a3a8f;margin-top:3px;font-style:italic">💬 NV: '+esc(t.emp_notes)+'</div>';
+    html += '</div>';
+    var snapData = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||i+1,assignee:asgn?asgn.name:'Chưa phân công',completed_at:t.completed_at||'',evidence_id:t.evidence_id||'',status_label:st?st.label:'',status_color:st?st.color:'#999'}));
+    html += '<div class="task-acts" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">';
+    html += '<div style="display:flex;align-items:center;gap:4px">';
+    html += (st?'<span class="badge" style="background:'+st.color+'22;color:'+st.color+'">'+st.label+'</span>':'');
+    if (t.evidence_id) html += '<button class="btn btn-sm btn-outline" style="padding:3px 8px" data-t="'+snapData+'" onclick="_showEmpTaskSnap(this)">Chi tiết</button>';
+    html += '</div>';
+    html += '<div style="display:flex;gap:4px">';
+    html += '<button class="btn btn-sm btn-outline" onclick="openEditTask(\''+t.id+'\',\''+job.id+'\')">Sửa</button>';
+    html += '<button class="btn btn-sm btn-ghost" style="color:#e53935" onclick="delTask(\''+t.id+'\',\''+job.id+'\')">Xóa</button>';
+    html += '</div></div></div>';
+  });
+  return html;
+}
+
+// ---- TASKS ----
+function openAddTask(jobId) {
+  var tst = APP.stList('task');
+  var emps = APP.emps();
+  var html = '<div class="modal-hd"><h3>+ Thêm Task</h3><button class="btn-x" onclick="closeModal();openJobDetail(\''+jobId+'\')">✕</button></div>';
+  html += '<div class="modal-bd">';
+  html += '<div class="row2 row1"><div class="fg"><label>Tên task *</label><input id="t-name" list="tmpl-dl" placeholder="Chọn hoặc nhập"><datalist id="tmpl-dl">';
+  APP.taskTemplates.forEach(function(t){ html += '<option value="'+esc(t.name)+'">'; });
+  html += '</datalist></div></div>';
+  html += '<div class="row2"><div class="fg"><label>Người thực hiện</label><select id="t-asgn"><option value="">-- Chọn --</option>';
+  emps.forEach(function(u){ html += '<option value="'+u.id+'">'+esc(u.name)+'</option>'; });
+  html += '</select></div><div class="fg"><label>Thứ tự</label><input type="number" id="t-ord" value="1" min="1"><p class="hint">Nhỏ → lớn</p></div></div>';
+  html += '<div class="row2"><div class="fg"><label>Deadline riêng (trống=theo Job)</label><input type="date" id="t-dl"></div>';
+  html += '<div class="fg"><label>Trạng thái</label><select id="t-st">';
+  tst.forEach(function(s){ html += '<option value="'+s.id+'">'+s.label+'</option>'; });
+  html += '</select></div></div>';
+  html += '<div class="row2 row1"><div class="fg"><label>Ghi chú</label><textarea id="t-notes" placeholder="Lưu ý kỹ thuật..."></textarea></div></div>';
+  html += '</div><div class="modal-ft"><button class="btn btn-outline" onclick="closeModal();openJobDetail(\''+jobId+'\')">Hủy</button><button class="btn btn-blue" onclick="saveTask(\'\',\''+jobId+'\')">Lưu</button></div>';
+  showModal(html);
+}
+
+function openEditTask(taskId, jobId) {
+  google.script.run
+    .withSuccessHandler(function(t) {
+      if (!t) return;
+      var tst = APP.stList('task');
+      var emps = APP.emps();
+      var html = '<div class="modal-hd"><h3>Sửa Task</h3><button class="btn-x" onclick="closeModal();openJobDetail(\''+jobId+'\')">✕</button></div>';
+      html += '<div class="modal-bd">';
+      html += '<div class="row2 row1"><div class="fg"><label>Tên task *</label><input id="t-name" value="'+esc(t.name||'')+'" list="tmpl-dl"><datalist id="tmpl-dl">';
+      APP.taskTemplates.forEach(function(tt){ html += '<option value="'+esc(tt.name)+'">'; });
+      html += '</datalist></div></div>';
+      html += '<div class="row2"><div class="fg"><label>Người thực hiện</label><select id="t-asgn"><option value="">-- Chọn --</option>';
+      emps.forEach(function(u){ html += '<option value="'+u.id+'"'+(t.assignee_id===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
+      html += '</select></div><div class="fg"><label>Thứ tự</label><input type="number" id="t-ord" value="'+(t.order||1)+'" min="1"></div></div>';
+      html += '<div class="row2"><div class="fg"><label>Deadline riêng</label><input type="date" id="t-dl" value="'+fmtDateInput(t.deadline||'')+'"></div>';
+      html += '<div class="fg"><label>Trạng thái</label><select id="t-st">';
+      tst.forEach(function(s){ html += '<option value="'+s.id+'"'+(t.status_id===s.id?' selected':'')+'>'+s.label+'</option>'; });
+      html += '</select></div></div>';
+      html += '<div class="row2 row1"><div class="fg"><label>Ghi chú</label><textarea id="t-notes">'+esc(t.notes||'')+'</textarea></div></div>';
+      html += '</div><div class="modal-ft"><button class="btn btn-outline" onclick="closeModal();openJobDetail(\''+jobId+'\')">Hủy</button><button class="btn btn-blue" onclick="saveTask(\''+taskId+'\',\''+jobId+'\')">Lưu</button></div>';
+      showModal(html);
+    })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .getTaskById(taskId);
+}
+
+function saveTask(taskId, jobId, btn) {
+  var data = { job_id: jobId, name: gv('t-name'), order: Number(gv('t-ord'))||1, assignee_id: gv('t-asgn'), deadline: gv('t-dl'), status_id: gv('t-st'), notes: gv('t-notes') };
+  if (!data.name) { toast('Vui lòng nhập tên task','err'); return; }
+  var fn   = taskId ? 'updateTask' : 'createTask';
+  var args = taskId ? [taskId, data] : [data];
+  gsRun(btn||document.querySelector('.modal-ft .btn-blue'), fn, args,
+    function(){ toast(taskId?'Đã cập nhật':'Đã thêm task','ok'); closeModal(); openJobDetail(jobId); });
+}
+
+function delTask(taskId, jobId) {
+  if (!confirm('Xóa task này?')) return;
+  google.script.run
+    .withSuccessHandler(function(){ toast('Đã xóa task','ok'); openJobDetail(jobId); })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .deleteTask(taskId);
+}
+
+// ---- IMAGES ----
+function trigUpload(type, id, gridId) {
+  document.getElementById('uf-'+type+'-'+id).click();
+}
+
+function handleUpload(input, type, id, gridId) {
+  var files = Array.prototype.slice.call(input.files);
+  if (!files.length) return;
+  uploadFilesSequential(files, 0, type, id, gridId, function(){ input.value = ''; });
+}
+
+function uploadFilesSequential(files, index, type, id, gridId, done) {
+  if (index >= files.length) { done && done(); return; }
+  var file = files[index];
+  var grid = document.getElementById(gridId);
+
+  // Thêm placeholder loading
+  var placeholder = null;
+  if (grid) {
+    placeholder = document.createElement('div');
+    placeholder.className = 'img-th img-uploading';
+    placeholder.innerHTML = '<div class="spin"></div>';
+    grid.appendChild(placeholder);
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var b64 = e.target.result.split(',')[1];
+    google.script.run
+      .withSuccessHandler(function(img) {
+        if (placeholder && placeholder.parentNode) {
+          var d = document.createElement('div');
+          d.innerHTML = imgThumb(img, type, id, gridId);
+          var newEl = d.firstChild;
+          placeholder.parentNode.replaceChild(newEl, placeholder);
+        }
+        toast('Đã tải: '+file.name, 'ok');
+        uploadFilesSequential(files, index+1, type, id, gridId, done);
+      })
+      .withFailureHandler(function(er){
+        if (placeholder && placeholder.parentNode) placeholder.remove();
+        toast('Lỗi: '+er.message, 'err');
+        uploadFilesSequential(files, index+1, type, id, gridId, done);
+      })
+      .uploadImage(b64, file.type, file.name, type, id, APP.user.name||'', '');
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadEvidenceAndUnlock(input, taskId) {
+  var files = Array.prototype.slice.call(input.files);
+  if (!files.length) return;
+
+  // Nếu đang là zone trống → đổi thành imgs-grid với placeholder spinners
+  var zone = input.parentNode.querySelector('[style*="border:2px dashed"]');
+  var grid = document.getElementById('ei-'+taskId);
+  if (zone && !grid) {
+    var newGrid = document.createElement('div');
+    newGrid.className = 'imgs-grid';
+    newGrid.id = 'ei-'+taskId;
+    zone.parentNode.replaceChild(newGrid, zone);
+    grid = newGrid;
+  }
+
+  // Thêm placeholder spinner cho mỗi file
+  var placeholders = files.map(function() {
+    var ph = document.createElement('div');
+    ph.className = 'img-th img-uploading';
+    ph.innerHTML = '<div class="spin"></div>';
+    if (grid) grid.appendChild(ph);
+    return ph;
+  });
+
+  var pending = files.length;
+  files.forEach(function(file, idx) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      google.script.run
+        .withSuccessHandler(function(result) {
+          // Thay placeholder bằng ảnh thật
+          var ph = placeholders[idx];
+          if (ph && ph.parentNode) {
+            var cdnUrl  = result.cdn_url;
+            var viewUrl = 'https://drive.google.com/file/d/'+result.drive_file_id+'/view';
+            var d = document.createElement('div');
+            d.className = 'img-th';
+            d.innerHTML = '<img src="'+cdnUrl+'" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="openLightbox(\''+cdnUrl+'\',\''+viewUrl+'\')">'
+              + '<button class="img-del" onclick="event.stopPropagation();delEvidence(\''+taskId+'\',\''+result.drive_file_id+'\',\'ei-'+taskId+'\')">✕</button>';
+            ph.parentNode.replaceChild(d, ph);
+          }
+          pending--;
+          if (pending === 0) {
+            toast('Đã tải '+files.length+' ảnh', 'ok');
+            // Unlock nút trạng thái
+            ['btn-start-'+taskId,'btn-done-'+taskId].forEach(function(id){
+              var btn = document.getElementById(id);
+              if (!btn) return;
+              btn.style.opacity='1'; btn.style.cursor='pointer';
+              btn.onclick = (function(b){ return function(){
+                var tst=APP.stList('task'), norm=function(s){return (s||'').toLowerCase().replace(/\s/g,'');};
+                var isStart = b.id.indexOf('start')>-1;
+                var s = isStart ? tst.filter(function(x){return norm(x.label)==='đanglàm';})[0]
+                                : tst.filter(function(x){return norm(x.label)==='hoànthành'||norm(x.label)==='đãxong';})[0];
+                if (s) empUpdStatusBtn(b, taskId, s.id, '');
+              }; })(btn);
+            });
+            // Ẩn cảnh báo "cần có ảnh"
+            var warn = document.querySelector('#modal-body .warn-no-img');
+            if (warn) warn.style.display='none';
+          }
+        })
+        .withFailureHandler(function(er){
+          if (placeholders[idx] && placeholders[idx].parentNode) placeholders[idx].remove();
+          toast(er.message,'err');
+        })
+        .uploadTaskEvidence(b64, file.type, file.name, taskId, APP.user?APP.user.name:'');
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function uploadEvidence(input, taskId) {
+  var files = Array.prototype.slice.call(input.files);
+  if (!files.length) return;
+  var grid = document.getElementById('ei-'+taskId);
+  files.forEach(function(file) {
+    var ph = document.createElement('div');
+    ph.className = 'img-th img-uploading';
+    ph.innerHTML = '<div class="spin"></div>';
+    if (grid) grid.appendChild(ph);
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      google.script.run
+        .withSuccessHandler(function(result) {
+          var cdnUrl  = result.cdn_url;
+          var viewUrl = 'https://drive.google.com/file/d/'+result.drive_file_id+'/view';
+          var d = document.createElement('div');
+          d.className = 'img-th';
+          d.innerHTML = '<img src="'+cdnUrl+'" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="openLightbox(\''+cdnUrl+'\',\''+viewUrl+'\')">'
+            + '<button class="img-del" onclick="event.stopPropagation();delEvidence(\''+taskId+'\',\''+result.drive_file_id+'\',\'ei-'+taskId+'\')">✕</button>';
+          if (ph.parentNode) ph.parentNode.replaceChild(d, ph);
+          toast('Đã tải ảnh','ok');
+        })
+        .withFailureHandler(function(er){ if(ph.parentNode)ph.remove(); toast(er.message,'err'); })
+        .uploadTaskEvidence(b64, file.type, file.name, taskId, APP.user?APP.user.name:'');
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function delEvidence(taskId, fileId, gridId) {
+  if (!confirm('Xóa ảnh này?')) return;
+  google.script.run
+    .withSuccessHandler(function() {
+      toast('Đã xóa','ok');
+      // Refresh task modal
+      closeModal();
+      openEmpTask(taskId);
+    })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .deleteTaskEvidence(taskId, fileId);
+}
+
+var _pendingAvatarFile = null;
+
+function previewAvatar(input) {
+  var file = input.files[0];
+  if (!file) return;
+  _pendingAvatarFile = file;
+  document.getElementById('f-avt-name').textContent = file.name;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev = document.getElementById('f-avt-preview');
+    if (prev) { prev.outerHTML = '<img id="f-avt-preview" src="'+e.target.result+'" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #eee">'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadAvatar(input, jobId) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var b64 = e.target.result.split(',')[1];
+    toast('Đang tải ảnh...');
+    google.script.run
+      .withSuccessHandler(function(result) {
+        toast('Đã cập nhật ảnh', 'ok');
+        // Cập nhật avatar trên tất cả nơi hiển thị
+        var imgs = document.querySelectorAll('[src*="'+( result.drive_file_id || '')+'"], img[src*="lh3"]');
+        var newUrl = result.cdn_url;
+        // reload job detail
+        closeModal();
+        openJobDetail(jobId);
+        renderJobs();
+      })
+      .withFailureHandler(function(e){ toast(e.message,'err'); })
+      .uploadJobAvatar(b64, file.type, file.name, jobId, APP.user ? APP.user.name : '');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleDropFiles(files, type, id, gridId) {
+  var arr = Array.prototype.slice.call(files);
+  if (!arr.length) return;
+  // Nếu grid đang là upload-zone thì đổi thành imgs-grid
+  var grid = document.getElementById(gridId);
+  if (grid && grid.classList.contains('upload-zone')) {
+    grid.className = 'imgs-grid';
+    grid.onclick = null;
+  }
+  uploadFilesSequential(arr, 0, type, id, gridId, null);
+}
+
+function imgThumb(img, type, eid, gridId) {
+  var fileId  = img.drive_file_id || '';
+  var viewUrl = 'https://drive.google.com/file/d/'+fileId+'/view';
+  // Thử lh3.googleusercontent.com CDN trực tiếp, fallback sang batch base64
+  var cdnUrl  = 'https://lh3.googleusercontent.com/d/'+fileId;
+  return '<div class="img-th" id="ith-'+img.id+'">'
+    + '<img src="'+cdnUrl+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" '
+    + 'onclick="openLightbox(\''+cdnUrl+'\',\''+viewUrl+'\')" '
+    + 'onerror="this.src=\'https://drive.google.com/file/d/'+fileId+'/view\'">'
+    + '<div style="display:none"></div>'
+    + '<button class="img-del" onclick="event.stopPropagation();delImg(\''+img.id+'\',\''+gridId+'\',\''+type+'\',\''+eid+'\')">✕</button>'
+    + '</div>';
+}
+
+// Sau khi render grid, gọi hàm này để load ảnh
+
+
+function openLightbox(thumbUrl, viewUrl) {
+  var div = document.createElement('div');
+  div.className = 'lb-overlay';
+  div.innerHTML = '<button class="lb-close" id="lb-close-btn">✕</button>'
+    + '<img class="lb-img" src="'+thumbUrl+'" onerror="this.src=\'\'"/>';
+  div.addEventListener('click', function(e){ if(e.target===div) closeLightbox(); });
+  document.body.appendChild(div);
+  document.getElementById('lb-close-btn').addEventListener('click', closeLightbox);
+}
+function closeLightbox() {
+  var lb = document.querySelector('.lb-overlay');
+  if (lb) lb.remove();
+}
+
+function delImg(imgId, gridId, type, eid) {
+  if (!confirm('Xóa ảnh này?')) return;
+  google.script.run
+    .withSuccessHandler(function() {
+      toast('Đã xóa ảnh','ok');
+      google.script.run
+        .withSuccessHandler(function(imgs) {
+          var grid = document.getElementById(gridId);
+          if (grid) { var h=''; imgs.forEach(function(img){ h+=imgThumb(img,type,eid,gridId); }); grid.innerHTML=h; }
+        })
+        .withFailureHandler(function(){})
+        .getImages(type, eid);
+    })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .deleteImage(imgId);
+}
+
+function openTaskImgs(taskId, taskName) {
+  showModal(spinner());
+  google.script.run
+    .withSuccessHandler(function(imgs) {
+      var html = '<div class="modal-hd"><h3>Ảnh: '+esc(taskName)+'</h3><button class="btn-x" onclick="closeModal()">✕</button></div>';
+      html += '<div class="modal-bd">';
+      html += '<button class="btn btn-outline" onclick="document.getElementById(\'tuf-'+taskId+'\').click()">+ Tải ảnh lên</button>';
+      html += '<input type="file" id="tuf-'+taskId+'" accept="image/*" multiple style="display:none" onchange="handleUpload(this,\'task\',\''+taskId+'\',\'ti-'+taskId+'\')">';
+      html += '<div class="imgs-grid" id="ti-'+taskId+'">';
+      imgs.forEach(function(img){ html += imgThumb(img,'task',taskId,'ti-'+taskId); });
+      html += '</div></div>';
+      html += '<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
+      setModal(html);
+    })
+    .withFailureHandler(function(e){ setModal('<p class="empty">Lỗi: '+e.message+'</p>'); })
+    .getImages('task', taskId);
+}
+
+// ---- ALL TASKS (Manager view) ----
+function defaultTaskFilters() {
+  var to = new Date(); var from = new Date(); from.setDate(from.getDate()-30);
+  return { assignee_id:'', status_id:'', deadline_from: from.toISOString().split('T')[0], deadline_to: to.toISOString().split('T')[0] };
+}
+var _taskFilters = defaultTaskFilters();
+var _taskPageSize = 15;
+var _taskPages = {};
+var _taskMobileRange = '30';
+function applyTaskMobileRange(val) {
+  _taskMobileRange = val;
+  var to = new Date();
+  var from = new Date();
+  if (val) { from.setDate(from.getDate() - Number(val)); _taskFilters.deadline_from = from.toISOString().split('T')[0]; }
+  else { _taskFilters.deadline_from = ''; }
+  _taskFilters.deadline_to = val ? to.toISOString().split('T')[0] : '';
+  _taskPages = {}; loadAllTasks();
+} // { status_id: currentPage }
+
+function renderAllTasks() {
+  var el = document.getElementById('pg-tasks');
+  var emps = APP.emps();
+  var tst  = APP.stList('task');
+
+  var fb;
+  if (isMobile()) {
+    var rangeVal = _taskMobileRange || '30';
+    fb = '<div style="display:flex;gap:8px;margin-bottom:14px">';
+    fb += '<select id="tf-assignee" style="flex:1;min-width:0" onchange="_taskFilters.assignee_id=this.value;_taskPages={};loadAllTasks()">';
+    fb += '<option value="">Tất cả NV</option>';
+    emps.forEach(function(u){ fb += '<option value="'+u.id+'"'+(_taskFilters.assignee_id===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
+    fb += '</select>';
+    fb += '<select id="tf-status" style="flex:1;min-width:0" onchange="_taskFilters.status_id=this.value;_taskPages={};loadAllTasks()">';
+    fb += '<option value="">Tất cả TT</option>';
+    tst.forEach(function(s){ fb += '<option value="'+s.id+'"'+(_taskFilters.status_id===s.id?' selected':'')+'>'+esc(s.label)+'</option>'; });
+    fb += '</select>';
+    fb += '<select style="flex:1;min-width:0" onchange="applyTaskMobileRange(this.value)">';
+    fb += '<option value="7"'+(rangeVal==='7'?' selected':'')+'>7 ngày</option>';
+    fb += '<option value="30"'+(rangeVal==='30'?' selected':'')+'>30 ngày</option>';
+    fb += '<option value="90"'+(rangeVal==='90'?' selected':'')+'>90 ngày</option>';
+    fb += '<option value="365"'+(rangeVal==='365'?' selected':'')+'>1 năm</option>';
+    fb += '<option value=""'+(rangeVal===''?' selected':'')+'>Tất cả</option>';
+    fb += '</select>';
+    fb += '</div>';
+  } else {
+    fb = '<div style="background:#fff;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+    fb += '<span style="font-size:.85rem;font-weight:600;color:#555">Lọc:</span>';
+    fb += '<select id="tf-assignee" style="padding:6px 10px;font-size:.83rem;max-width:160px" onchange="_taskFilters.assignee_id=this.value;_taskPages={};loadAllTasks()">';
+    fb += '<option value="">Tất cả NV</option>';
+    emps.forEach(function(u){ fb += '<option value="'+u.id+'"'+(_taskFilters.assignee_id===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
+    fb += '</select>';
+    fb += '<select id="tf-status" style="padding:6px 10px;font-size:.83rem;max-width:150px" onchange="_taskFilters.status_id=this.value;_taskPages={};loadAllTasks()">';
+    fb += '<option value="">Tất cả TT</option>';
+    tst.forEach(function(s){ fb += '<option value="'+s.id+'"'+(_taskFilters.status_id===s.id?' selected':'')+'>'+esc(s.label)+'</option>'; });
+    fb += '</select>';
+    fb += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">Deadline từ</label><input type="date" id="tf-from" value="'+_taskFilters.deadline_from+'" style="width:135px;padding:6px 10px;font-size:.83rem" onchange="_taskFilters.deadline_from=this.value;_taskPages={};loadAllTasks()"></div>';
+    fb += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">đến</label><input type="date" id="tf-to" value="'+_taskFilters.deadline_to+'" style="width:135px;padding:6px 10px;font-size:.83rem" onchange="_taskFilters.deadline_to=this.value;_taskPages={};loadAllTasks()"></div>';
+    fb += '<button class="btn btn-sm btn-ghost" onclick="_taskFilters=defaultTaskFilters();_taskPages={};renderAllTasks()">↺ Mặc định</button>';
+    fb += '</div>';
+  }
+
+  el.innerHTML = '<div class="page-header"><div><h1>Đầu việc</h1><p class="sub">Tất cả task theo trạng thái</p></div></div>'
+    + fb + '<div id="tasks-content">'+spinner()+'</div>';
+  loadAllTasks();
+}
+
+var _allTasksCache = [];
+
+function loadAllTasks() {
+  var el = document.getElementById('tasks-content');
+  if (el) el.innerHTML = spinner();
+  google.script.run
+    .withSuccessHandler(function(tasks) {
+      _allTasksCache = tasks || [];
+      renderTasksContent();
+    })
+    .withFailureHandler(function(e){ var c=document.getElementById('tasks-content'); if(c) c.innerHTML='<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getAllTasksWithDetails(_taskFilters);
+}
+
+function renderTasksContent() {
+  var el2 = document.getElementById('tasks-content');
+  if (!el2) return;
+  var tasks = _allTasksCache;
+  var tst = APP.stList('task');
+  var norm = function(s){ return (s||'').toLowerCase().replace(/\s/g,''); };
+
+  // Group by status, priority order
+  var order = { 'đanglàm':1, 'chưalàm':2, 'hoànthành':3, 'đãxong':3 };
+  var groups = {};
+  tst.forEach(function(s){ groups[s.id] = { status: s, items: [] }; });
+
+  tasks.forEach(function(t){
+    // Bỏ qua task của job không có tasks configured (job.task_count === 0 không thể xảy ra vì task này tồn tại)
+    if (!t.job) return;
+    if (groups[t.status_id]) groups[t.status_id].items.push(t);
+  });
+
+  var sortedGroups = Object.values(groups)
+    .filter(function(g){ return g.items.length > 0; })
+    .sort(function(a,b){
+      var oa = a.status ? (order[norm(a.status.label)]||5) : 5;
+      var ob = b.status ? (order[norm(b.status.label)]||5) : 5;
+      return oa - ob;
+    });
+
+  if (!sortedGroups.length) { el2.innerHTML = '<div class="empty">Không có task nào</div>'; return; }
+
+  var html = '';
+  sortedGroups.forEach(function(g) {
+    var s = g.status;
+    var sid = s ? s.id : '__none';
+    var color = s ? s.color : '#9E9E9E';
+    var isActive = s && (norm(s.label) === 'đanglàm');
+    var page = _taskPages[sid] || 1;
+    var pageSize = isActive ? g.items.length : _taskPageSize; // Đang làm: hiện tất cả
+    var total = g.items.length;
+    var totalPages = Math.ceil(total / pageSize);
+    var pageItems = isActive ? g.items : g.items.slice((page-1)*pageSize, page*pageSize);
+
+    html += '<div style="margin-bottom:24px">';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">';
+    html += '<span style="width:12px;height:12px;border-radius:50%;background:'+color+';display:inline-block"></span>';
+    html += '<strong style="font-size:.95rem">'+(s?s.label:'Không rõ')+'</strong>';
+    html += '<span class="chip">'+total+'</span></div>';
+    if (isMobile()) {
+      html += '<div>';
+      pageItems.forEach(function(t) {
+        var dl = t.effective_deadline;
+        var isDone = s && (norm(s.label)==='hoànthành'||norm(s.label)==='đãxong');
+        var over = dl && new Date(dl) < new Date() && !isDone;
+        var daysLeft = dl ? Math.ceil((new Date(dl)-new Date())/86400000) : null;
+        var metaParts = [];
+        if (t.assignee) metaParts.push(esc(t.assignee.name));
+        if (dl) metaParts.push(over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft!==null&&daysLeft<=3?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':fmtDate(dl)));
+        var avtId = t.job && t.job.avatar_id;
+        var avtHtml = avtId
+          ? '<div class="jcm-avt" onclick="event.stopPropagation();viewImg(\''+avtId+'\')" style="cursor:zoom-in"><img src="https://lh3.googleusercontent.com/d/'+avtId+'" onerror="this.parentNode.innerHTML=\'📦\'"></div>'
+          : '<div class="jcm-avt">📦</div>';
+        html += '<div class="task-card-m" style="display:flex;align-items:flex-start;gap:12px;border-left:3px solid '+color+'">';
+        html += avtHtml;
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div class="tcm-name">'+esc(t.name||'—')+'</div>';
+        html += '<div class="tcm-job">'+esc(t.job?t.job.code+' · '+t.job.name:'—')+'</div>';
+        html += '<div class="tcm-footer"><span class="tcm-meta">'+metaParts.join(' · ')+'</span>';
+        if (s) html += '<span class="badge" style="background:'+color+'22;color:'+color+';flex-shrink:0">'+s.label+'</span>';
+        html += '</div></div></div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="card"><div class="tbl-wrap"><table><thead><tr>';
+      html += '<th>Đầu việc</th><th>Job</th><th>Nhân viên</th><th>Deadline</th><th>Ghi chú</th></tr></thead><tbody>';
+      pageItems.forEach(function(t) {
+        var dl = t.effective_deadline;
+        var isDone = s && (norm(s.label)==='hoànthành'||norm(s.label)==='đãxong');
+        var over = dl && new Date(dl) < new Date() && !isDone;
+        var daysLeft = dl ? Math.ceil((new Date(dl)-new Date())/86400000) : null;
+        html += '<tr>';
+        html += '<td><strong>'+esc(t.name||'—')+'</strong></td>';
+        html += '<td><div style="font-size:.85rem;font-weight:500">'+esc(t.job?t.job.code:'—')+'</div><div style="font-size:.78rem;color:#aaa">'+esc(t.job?t.job.name:'')+'</div></td>';
+        html += '<td>'+(t.assignee?'<span style="font-size:.85rem">'+esc(t.assignee.name)+'</span>':'<span style="color:#ccc;font-size:.82rem">Chưa phân công</span>')+'</td>';
+        html += '<td>'+(dl
+          ? '<div style="font-size:.85rem;font-weight:'+(over?700:400)+';color:'+(over?'#0d1b4b':'#333')+'">'+fmtDate(dl)+'</div>'
+            +(over?'<div style="font-size:.75rem;color:#0d1b4b">quá '+Math.abs(daysLeft)+' ngày</div>'
+            :daysLeft!==null&&daysLeft>=0&&daysLeft<=3?'<div style="font-size:.75rem;color:#FF9800">còn '+daysLeft+' ngày</div>':'')
+          :'<span style="color:#ccc">—</span>')+'</td>';
+        html += '<td style="font-size:.82rem;color:#888;max-width:180px">'+esc(t.notes||'')+'</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    // Pagination controls
+    if (!isActive && totalPages > 1) {
+      var pStyle = isMobile() ? 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-top:4px' : 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #f0f0f0';
+      html += '<div style="'+pStyle+'">';
+      html += '<span style="font-size:.82rem;color:#888">'+((page-1)*pageSize+1)+' – '+Math.min(page*pageSize,total)+' / '+total+' task</span>';
+      html += '<div style="display:flex;gap:6px">';
+      html += '<button class="btn btn-sm btn-outline" '+(page<=1?'disabled':'')+' onclick="_taskPages[\''+sid+'\']='+( page-1)+';renderTasksContent()">‹</button>';
+      for (var p=1;p<=totalPages;p++) {
+        html += '<button class="btn btn-sm '+(p===page?'btn-blue':'btn-outline')+'" onclick="_taskPages[\''+sid+'\']='+p+';renderTasksContent()">'+p+'</button>';
+      }
+      html += '<button class="btn btn-sm btn-outline" '+(page>=totalPages?'disabled':'')+' onclick="_taskPages[\''+sid+'\']='+( page+1)+';renderTasksContent()">›</button>';
+      html += '</div></div>';
+    } else if (!isActive) {
+      var countStyle = isMobile() ? 'padding:4px 0;font-size:.82rem;color:#aaa' : 'padding:8px 16px;font-size:.82rem;color:#aaa;border-top:1px solid #f0f0f0';
+      html += '<div style="'+countStyle+'">'+total+' task</div>';
+    }
+    if (!isMobile()) html += '</div>'; // close .card
+    html += '</div>'; // close group div
+  });
+  el2.innerHTML = html;
+}
+
+// ---- MY TASKS ----
+function renderMyTasks() {
+  var el = document.getElementById('pg-mytasks');
+  el.innerHTML = spinner();
+  google.script.run
+    .withSuccessHandler(function(tasks) {
+      var tst = APP.stList('task');
+      var groups = {
+        in_progress: {lbl:'🔥 Đang làm',        dot:'#FF9800', items:[]},
+        ready:       {lbl:'✅ Có thể làm',       dot:'#4CAF50', items:[]},
+        upcoming:    {lbl:'⏰ Sắp đến lượt',    dot:'#1a3a8f', items:[]},
+        done:        {lbl:'☑️ Đã hoàn thành',   dot:'#9E9E9E', items:[]},
+        blocked:     {lbl:'🔒 Chưa đến lượt',   dot:'#ddd',    items:[]},
+      };
+      tasks.forEach(function(t){ if(groups[t.availability]) groups[t.availability].items.push(t); });
+      var html = '<div class="page-header"><div><h1>Việc của '+esc(APP.user.name)+'</h1><p class="sub">Tổng: '+tasks.length+' task</p></div>';
+      html += '<button class="btn btn-outline" onclick="renderMyTasks()">Làm mới</button></div>';
+      Object.keys(groups).forEach(function(key) {
+        var g = groups[key];
+        if (!g.items.length) return;
+        html += '<div class="sec-title"><span class="dot" style="background:'+g.dot+'"></span>'+g.lbl+' <span class="chip">'+g.items.length+'</span></div>';
+        g.items.forEach(function(t) {
+          var st = tst.filter(function(s){ return s.id===t.status_id; })[0];
+          var dl = t.effective_deadline;
+          var over = dl && new Date(dl)<new Date() && st && st.label!=='Hoàn thành';
+          var avtId = t.job && t.job.avatar_id;
+          var avtHtml = avtId
+            ? '<div class="ec-avt" onclick="event.stopPropagation();viewImg(\''+avtId+'\')" title="Xem ảnh"><img src="https://lh3.googleusercontent.com/d/'+avtId+'" onerror="this.parentNode.innerHTML=\'📦\'"></div>'
+            : '<div class="ec-avt">📦</div>';
+          html += '<div class="emp-card '+key+'" onclick="openEmpTask(\''+t.id+'\')">';
+          html += avtHtml;
+          html += '<div class="ec-body">';
+          html += '<div class="ec-hd"><span class="ec-name">'+esc(t.name||'—')+'</span>';
+          html += (st?'<span class="badge" style="background:'+st.color+'22;color:'+st.color+'">'+st.label+'</span>':'')+'</div>';
+          html += '<div class="ec-job">'+esc((t.job&&t.job.code)||'')+' '+ esc((t.job&&t.job.name)||'—')+'</div>';
+          html += '<div class="ec-dl'+(over?' over':'')+'">'+( dl?fmtDate(dl):'Không có deadline')+(over?' · Quá hạn':'')+(t.prev_task?' · Sau: '+esc(t.prev_task.name):'')+'</div>';
+          html += '</div></div>';
+        });
+      });
+      if (!tasks.length) html += '<div class="empty" style="margin-top:60px">Không có task nào được giao</div>';
+      el.innerHTML = html;
+    })
+    .withFailureHandler(function(e){ el.innerHTML = '<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getEnrichedTasksForAssignee(APP.user.id);
+}
+
+function openEmpTask(taskId) {
+  showModal(spinner());
+  google.script.run
+    .withSuccessHandler(function(data) {
+      var t = data.task, imgs = data.images, avail = data.availability || 'ready', prevImgs = data.prev_task_images || [];
+      var canAct = (avail === 'ready' || avail === 'in_progress');
+      var tst = APP.stList('task');
+      var st = tst.filter(function(s){ return s.id===t.status_id; })[0];
+      // So sánh không phân biệt hoa thường
+      var norm = function(s){ return (s||'').toLowerCase().replace(/\s/g,''); };
+      var doneS = tst.filter(function(s){ return norm(s.label)==='hoànthành'||norm(s.label)==='đãxong'; })[0];
+      var ipS   = tst.filter(function(s){ return norm(s.label)==='đanglàm'; })[0];
+      var isDone = doneS && st && norm(st.label)===norm(doneS.label);
+      var isIP   = ipS   && st && norm(st.label)===norm(ipS.label);
+      var hasEvidence = imgs.length > 0;
+      // Hiện banner nếu chưa đến lượt
+      if (!canAct && avail !== 'done') {
+        var blockMsg = avail === 'upcoming' ? '⏰ Task này sắp đến lượt — chờ task trước hoàn thành' : '🔒 Task này chưa đến lượt — cần hoàn thành task trước';
+      }
+      var html = '<div class="modal-hd"><h3>'+esc(t.name)+'</h3><button class="btn-x" onclick="closeModal()">✕</button></div>';
+      html += '<div class="modal-bd">';
+
+      // Status + xem job
+      html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">';
+      if (st) html += '<span class="badge" style="background:'+st.color+'22;color:'+st.color+';font-size:.9rem;padding:6px 14px">'+st.label+'</span>';
+      html += '<button class="btn btn-sm btn-outline" onclick="closeModal();openEmpJobView(\''+t.job_id+'\')">👜 Xem Job</button>';
+      html += '</div>';
+
+      // Banner chưa đến lượt
+      if (!canAct && avail !== 'done') {
+        var blockMsg = avail === 'upcoming' ? '⏰ Sắp đến lượt — chờ task trước hoàn thành' : '🔒 Chưa đến lượt — cần hoàn thành task trước';
+        html += '<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.85rem;color:#7b5800">'+blockMsg+'</div>';
+      }
+
+      // Ảnh tình trạng từ các task trước đã hoàn thành
+      if (prevImgs.length) {
+        html += '<div style="margin-bottom:14px;background:#f8f9ff;border-radius:10px;padding:12px 14px">';
+        html += '<div style="font-size:.8rem;font-weight:500;color:#0d1b4b;margin-bottom:10px">📸 Tình trạng từ bước trước</div>';
+        prevImgs.forEach(function(g) {
+          html += '<div style="font-size:.75rem;color:#888;margin-bottom:6px">'+esc(g.task_name)+'</div>';
+          html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">';
+          g.images.forEach(function(img) {
+            html += '<img src="'+img.cdn_url+'" style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:zoom-in" onclick="openLightbox(\''+img.cdn_url+'\',\'https://drive.google.com/file/d/'+img.drive_file_id+'/view\')">';
+          });
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Ghi chú từ quản lý (readonly)
+      if (t.notes) html += '<div class="detail-box" style="margin-bottom:14px;border-left:3px solid #0d1b4b"><h4 style="color:#0d1b4b">📋 Ghi chú từ quản lý</h4><p style="font-size:.88rem;white-space:pre-line">'+esc(t.notes)+'</p></div>';
+
+      // Ảnh + action chỉ hiện khi đến lượt
+      if (!canAct && avail !== 'done') {
+        html += '</div><div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
+        setModal(html); return;
+      }
+
+      // Ảnh bằng chứng — PHẢI up trước khi đổi trạng thái
+      html += '<div style="margin-bottom:14px">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+      html += '<div><strong>Ảnh tình trạng</strong>';
+      if (!hasEvidence && !isDone) html += ' <span style="font-size:.78rem;color:#c0392b;font-weight:500">— cần có ảnh để đổi trạng thái</span>';
+      html += '</div><button class="btn btn-sm btn-outline" onclick="document.getElementById(\'euf-'+taskId+'\').click()">+ Tải ảnh</button></div>';
+      html += '<input type="file" id="euf-'+taskId+'" accept="image/*" multiple style="display:none" onchange="uploadEvidenceAndUnlock(this,\''+taskId+'\')">';
+      if (imgs.length === 0) {
+        html += '<div style="border:2px dashed #ddd;border-radius:8px;padding:16px;text-align:center;color:#bbb;font-size:.85rem;cursor:pointer" onclick="document.getElementById(\'euf-'+taskId+'\').click()">📷 Kéo thả hoặc click để tải ảnh lên</div>';
+      } else {
+        html += '<div class="imgs-grid" id="ei-'+taskId+'">';
+        imgs.forEach(function(img){
+          var cdnUrl  = img.cdn_url || 'https://lh3.googleusercontent.com/d/'+img.drive_file_id;
+          var viewUrl = 'https://drive.google.com/file/d/'+img.drive_file_id+'/view';
+          html += '<div class="img-th"><img src="'+cdnUrl+'" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="openLightbox(\''+cdnUrl+'\',\''+viewUrl+'\')">'
+            + '<button class="img-del" onclick="event.stopPropagation();delEvidence(\''+taskId+'\',\''+img.drive_file_id+'\',\'ei-'+taskId+'\')">✕</button></div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+
+      // Ghi chú của nhân viên
+      html += '<div class="fg"><label>✍️ Ghi chú cho quản lý</label>';
+      html += '<textarea id="emp-notes" rows="3" placeholder="Ghi lại tình trạng, vấn đề phát sinh, lưu ý...">'+esc(t.emp_notes||'')+'</textarea></div>';
+
+      html += '</div>';
+      html += '<div class="modal-ft" style="justify-content:space-between"><button class="btn btn-outline" onclick="closeModal()">Đóng</button><div style="display:flex;gap:8px">';
+      // Nút đổi trạng thái — disable nếu chưa có ảnh
+      if (ipS && !isIP && !isDone) {
+        html += '<button id="btn-start-'+taskId+'" class="btn btn-outline" style="border-color:#FF9800;color:#FF9800" onclick="empUpdStatusBtn(this,\''+taskId+'\',\''+ipS.id+'\',\''+t.job_id+'\')">▶ Bắt đầu</button>';
+      }
+      if (doneS && !isDone) {
+        html += '<button id="btn-done-'+taskId+'" class="btn btn-green" style="'+(hasEvidence?'':'opacity:.4;cursor:not-allowed;')+'" onclick="'+(hasEvidence?'empUpdStatusBtn(this,\''+taskId+'\',\''+doneS.id+'\',\''+t.job_id+'\')':'toast(\'Vui lòng tải ảnh tình trạng trước\',\'err\')')+'" >✓ Hoàn thành</button>';
+      }
+      html += '<button class="btn btn-blue" onclick="empSaveNotes(\''+taskId+'\',\''+t.job_id+'\',this)">Lưu ghi chú</button>';
+      html += '</div></div>';
+      setModal(html);
+    })
+    .withFailureHandler(function(e){ setModal('<p class="empty">Lỗi: '+e.message+'</p>'); })
+    .getTaskWithImages(taskId);
+}
+
+function openEmpJobView(jobId) {
+  showModal(spinner(), true);
+  google.script.run
+    .withSuccessHandler(function(job) {
+      if (!job) { setModal('<p class="empty">Không tìm thấy Job</p>'); return; }
+      var tst  = APP.stList('task');
+      var myId = APP.user ? APP.user.id : '';
+
+      // Header với avatar
+      var avtUrl = job.avatar_id ? 'https://lh3.googleusercontent.com/d/'+job.avatar_id : '';
+      var html = '<div class="modal-hd">';
+      html += '<div style="display:flex;align-items:center;gap:12px">';
+      if (avtUrl) html += '<img src="'+avtUrl+'" style="width:52px;height:52px;object-fit:cover;border-radius:10px;border:1px solid #eee;cursor:zoom-in;flex-shrink:0" onclick="openLightbox(\''+avtUrl+'\',\''+avtUrl+'\')">';
+      else html += '<div style="width:52px;height:52px;border-radius:10px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">📦</div>';
+      html += '<div><div style="font-weight:700;font-size:1rem">'+esc(job.code)+' — '+esc(job.name)+'</div>';
+      html += '<div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">';
+      if (job.status) html += '<span class="badge" style="background:'+job.status.color+'22;color:'+job.status.color+'">'+job.status.label+'</span>';
+      if (job.category) html += '<span class="chip">'+esc(job.category)+'</span>';
+      if (job.deadline) html += '<span class="chip">⏰ '+fmtDate(job.deadline)+'</span>';
+      html += '</div></div></div>';
+      html += '<button class="btn-x" onclick="closeModal()">✕</button></div>';
+
+      html += '<div class="modal-bd">';
+
+      // Hạng mục sửa
+      if (job.repair_scope) {
+        html += '<div class="detail-box" style="margin-bottom:16px"><h4>Hạng mục sửa</h4><p style="font-size:.88rem;white-space:pre-line">'+esc(job.repair_scope)+'</p></div>';
+      }
+
+      // Flow tasks — desktop dùng DAG, mobile dùng vertical list
+      var sorted = job.tasks.slice().sort(function(a,b){ return Number(a.order)-Number(b.order); });
+      if (!isMobile()) {
+        html += '<div style="font-weight:600;margin-bottom:8px">Luồng công việc</div>';
+        html += renderDAG(job.tasks, tst);
+        html += '<div style="font-weight:600;margin:12px 0 8px">Chi tiết task</div>';
+      } else {
+        html += '<div style="font-weight:600;margin-bottom:10px">Luồng công việc ('+sorted.length+' bước)</div>';
+      }
+      sorted.forEach(function(t, i) {
+        var st   = tst.filter(function(s){ return s.id===t.status_id; })[0];
+        var asgn = APP.user_by_id(t.assignee_id);
+        var isMe = t.assignee_id === myId;
+        var norm = (st ? st.label : '').toLowerCase().replace(/\s/g,'');
+        var isDone = norm==='hoànthành'||norm==='đãxong';
+        var isIP   = norm==='đanglàm';
+        var dotColor = isDone ? '#4CAF50' : isIP ? '#FF9800' : '#bdbdbd';
+        var snapData = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||i+1,assignee:asgn?asgn.name:'Chưa phân công',completed_at:t.completed_at||'',evidence_id:t.evidence_id||'',status_label:st?st.label:'',status_color:st?st.color:'#999'}));
+
+        if (isMobile()) {
+          // Vertical timeline card
+          html += '<div style="display:flex;gap:10px;margin-bottom:6px;cursor:pointer" onclick="_showEmpTaskSnap(this)" data-t="'+snapData+'">';
+          html += '<div style="display:flex;flex-direction:column;align-items:center;gap:0;width:20px;flex-shrink:0">';
+          html += '<div style="width:18px;height:18px;border-radius:50%;background:'+dotColor+';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">'+(isDone?'✓':isIP?'▶':(t.order||i+1))+'</div>';
+          if (i < sorted.length-1) html += '<div style="width:2px;flex:1;background:#eee;min-height:20px;margin:2px 0"></div>';
+          html += '</div>';
+          html += '<div style="flex:1;min-width:0;padding-bottom:8px;border-radius:10px;'+(isMe?'background:#eef2ff;padding:8px 10px;':'padding:2px 0 8px')+(isDone?'opacity:.75':'')+'">';
+          html += '<div style="font-size:.88rem;font-weight:600;color:'+(isMe?'#0d1b4b':'#222')+'">'+esc(t.name||'—')+(isMe?' <span style="font-size:.7rem;color:#0d1b4b">← bạn</span>':'')+'</div>';
+          html += '<div style="font-size:.75rem;color:#999;margin-top:2px">'+esc(asgn?asgn.name:'Chưa phân công');
+          if (st) html += ' · <span style="color:'+st.color+'">'+st.label+'</span>';
+          html += '</div>';
+          if (t.evidence_id) { var eCnt = t.evidence_id.split(',').filter(Boolean).length; html += '<div style="font-size:.72rem;color:#aaa;margin-top:2px">📷 '+eCnt+' ảnh</div>'; }
+          html += '</div>';
+          html += '<div style="color:#ddd;font-size:1rem;align-self:center">›</div>';
+          html += '</div>';
+        } else {
+          html += '<div class="task-item" style="cursor:pointer;'+(isMe?'border-color:#1a3a8f;background:#eef2ff':'')+'" onclick="_showEmpTaskSnap(this)" data-t="'+snapData+'">';
+          html += '<div class="task-num" style="'+(isMe?'background:#0d1b4b':'')+'">'+( t.order||i+1)+'</div>';
+          html += '<div class="task-info"><div class="task-name">'+esc(t.name||'—')+(isMe?' <span style="color:#0d1b4b;font-size:.75rem">← của bạn</span>':'')+'</div>';
+          html += '<div class="task-meta">'+esc(asgn?asgn.name:'Chưa phân công')+'</div></div>';
+          html += (st?'<span class="badge" style="background:'+st.color+'22;color:'+st.color+'">'+st.label+'</span>':'');
+          html += '<span style="color:#ccc;margin-left:4px;font-size:.85rem">›</span>';
+          html += '</div>';
+        }
+      });
+
+      html += '</div>';
+      html += '<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
+      setModal(html);
+    })
+    .withFailureHandler(function(e){ setModal('<p class="empty">Lỗi: '+e.message+'</p>'); })
+    .getJobWithDetails(jobId);
+}
+
+function _showEmpTaskSnap(el) {
+  var t;
+  try { t = JSON.parse(el.getAttribute('data-t')); } catch(e) { return; }
+  var ids = (t.evidence_id || '').split(',').filter(Boolean);
+  var html = '<div class="modal-hd">';
+  html += '<div style="display:flex;align-items:center;gap:10px">';
+  html += '<div style="width:28px;height:28px;border-radius:50%;background:#0d1b4b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">'+t.order+'</div>';
+  html += '<span style="font-weight:600;font-size:1rem">'+esc(t.name)+'</span>';
+  html += '</div><button class="btn-x" onclick="closeModal()">✕</button></div>';
+  html += '<div class="modal-bd">';
+  // Trạng thái + người làm + thời gian
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
+  if (t.status_label) html += '<span class="badge" style="background:'+t.status_color+'22;color:'+t.status_color+'">'+esc(t.status_label)+'</span>';
+  html += '<span class="chip">👤 '+esc(t.assignee)+'</span>';
+  if (t.completed_at) html += '<span class="chip">✓ '+fmtDate(t.completed_at)+'</span>';
+  html += '</div>';
+  // Ảnh evidence
+  if (ids.length) {
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    ids.forEach(function(id) {
+      var url = 'https://lh3.googleusercontent.com/d/'+id;
+      html += '<img src="'+url+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px;cursor:zoom-in" onclick="openLightbox(\''+url+'\',\'https://drive.google.com/file/d/'+id+'/view\')">';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="color:#bbb;font-size:.85rem">Chưa có ảnh</div>';
+  }
+  html += '</div>';
+  html += '<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
+  setModal(html);
+}
+
+function empUpdStatusBtn(btn, taskId, statusId, jobId) {
+  // Lưu cả ghi chú + status cùng lúc
+  var empNotes = gv('emp-notes');
+  var data = { status_id: statusId };
+  if (jobId) data.job_id = jobId;
+  if (empNotes !== null) data.emp_notes = empNotes;
+  gsRun(btn, 'updateTask', [taskId, data],
+    function(){ toast('Đã lưu','ok'); closeModal(); renderMyTasks(); });
+}
+
+function empSaveNotes(taskId, jobId, btn) {
+  var empNotes = gv('emp-notes');
+  gsRun(btn||null, 'updateTask', [taskId, {emp_notes:empNotes, job_id:jobId}],
+    function(){ toast('Đã lưu ghi chú','ok'); });
+}
+
+// ---- SETTINGS ----
+function renderSettings() {
+  var el = document.getElementById('pg-settings');
+  el.innerHTML = spinner();
+  google.script.run
+    .withSuccessHandler(function(d) {
+      APP.users = d.users||[]; APP.statuses = d.statuses||[]; APP.taskTemplates = d.taskTemplates||[];
+      var emps = APP.emps();
+      var jst = APP.stList('job');
+      var tst = APP.stList('task');
+      var html = '<div class="page-header"><div><h1>Cài đặt</h1></div></div>';
+      html += '<div class="set-sec"><h3>Bảo mật</h3>';
+      html += '<div style="display:flex;gap:8px;margin-bottom:10px"><input id="new-pw" type="password" placeholder="Mật khẩu quản lý mới..." style="max-width:240px"><button class="btn btn-blue" onclick="changePw(this)">Đổi mật khẩu QL</button></div>';
+      html += '</div>';
+      html += '<div class="set-sec"><h3>Nhân viên ('+emps.length+')</h3>';
+      emps.forEach(function(u) {
+        html += '<div class="set-row"><span>'+esc(u.name)+'</span><div style="display:flex;gap:8px">';
+        html += '<button class="btn btn-sm btn-outline" onclick="toggleRole(\''+u.id+'\',\''+esc(u.name)+'\',\''+u.role+'\')">'+(u.role==='manager'?'Manager':'Promote')+'</button>';
+        html += '<button class="btn btn-sm btn-ghost" onclick="delUser(\''+u.id+'\',this)">Xóa</button></div></div>';
+      });
+      html += '<div style="display:flex;gap:8px;margin-top:12px"><input id="new-uname" placeholder="Tên nhân viên mới..." style="max-width:200px"><button class="btn btn-blue" onclick="addUser(this)">+ Thêm</button></div></div>';
+      html += '<div class="set-sec"><h3>Trạng thái Job</h3><div class="tag-list">';
+      jst.forEach(function(s){ html += '<div class="tag-it"><span class="tdot" style="background:'+s.color+'"></span>'+esc(s.label)+'<span class="rm" onclick="delStatus(\''+s.id+'\')">✕</span></div>'; });
+      html += '</div><div style="display:flex;gap:8px;margin-top:10px;align-items:center"><input id="new-jst-lbl" placeholder="Tên trạng thái..." style="max-width:160px"><input type="color" id="new-jst-col" value="#607D8B" style="width:40px;padding:2px;border-radius:4px"><button class="btn btn-sm btn-outline" onclick="addStatus(\'job\')">+ Thêm</button></div></div>';
+      html += '<div class="set-sec"><h3>Trạng thái Task</h3><div class="tag-list">';
+      tst.forEach(function(s){ html += '<div class="tag-it"><span class="tdot" style="background:'+s.color+'"></span>'+esc(s.label)+'<span class="rm" onclick="delStatus(\''+s.id+'\')">✕</span></div>'; });
+      html += '</div><div style="display:flex;gap:8px;margin-top:10px;align-items:center"><input id="new-tst-lbl" placeholder="Tên trạng thái..." style="max-width:160px"><input type="color" id="new-tst-col" value="#607D8B" style="width:40px;padding:2px;border-radius:4px"><button class="btn btn-sm btn-outline" onclick="addStatus(\'task\')">+ Thêm</button></div></div>';
+      html += '<div class="set-sec"><h3>Mẫu Task</h3><div class="tag-list">';
+      APP.taskTemplates.forEach(function(t){ html += '<div class="tag-it">'+esc(t.name)+'<span class="rm" onclick="delTmpl(\''+t.id+'\')">✕</span></div>'; });
+      html += '</div><div style="display:flex;gap:8px;margin-top:10px"><input id="new-tmpl" placeholder="Tên task mẫu..." style="max-width:200px"><button class="btn btn-sm btn-outline" onclick="addTmpl()">+ Thêm</button></div></div>';
+      html += '<div class="set-sec"><h3>Khởi tạo hệ thống</h3><p class="muted" style="margin-bottom:10px">Tạo tất cả sheet, seed dữ liệu. Chạy 1 lần khi setup.</p><button class="btn btn-outline" onclick="runSetup()">Chạy Setup</button></div>';
+      el.innerHTML = html;
+    })
+    .withFailureHandler(function(e){ el.innerHTML = '<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getInitialData();
+}
+
+function changePw(btn) { var pw=gv('new-pw'); if(!pw) return; gsRun(btn,'updateSetting',['manager_password',pw],function(){ toast('Đã đổi mật khẩu QL','ok'); document.getElementById('new-pw').value=''; }); }
+function addUser(btn) { var n=gv('new-uname').trim(); if(!n) return; gsRun(btn,'createUser',[{name:n,role:'employee'}],function(){ toast('Đã thêm','ok'); renderSettings(); }); }
+function delUser(id,btn) { if(!confirm('Xóa nhân viên này?')) return; gsRun(btn,'deleteUser',[id],function(){ toast('Đã xóa','ok'); renderSettings(); }); }
+function toggleRole(id, name, role) { google.script.run.withSuccessHandler(function(){ toast('Đã cập nhật','ok'); renderSettings(); }).withFailureHandler(function(e){toast(e.message,'err');}).updateUser(id,{role:role==='manager'?'employee':'manager'}); }
+function addStatus(type) {
+  var prefix = type === 'job' ? 'new-jst' : 'new-tst';
+  var l = gv(prefix+'-lbl').trim();
+  if (!l) { toast('Vui lòng nhập tên trạng thái','err'); return; }
+  var c = gv(prefix+'-col');
+  google.script.run
+    .withSuccessHandler(function(){ toast('Đã thêm','ok'); renderSettings(); })
+    .withFailureHandler(function(e){ toast(e.message,'err'); })
+    .createStatus({entity_type:type, label:l, color:c, order:99});
+}
+function delStatus(id) { if(!confirm('Xóa trạng thái?')) return; google.script.run.withSuccessHandler(function(){ toast('Đã xóa','ok'); renderSettings(); }).withFailureHandler(function(e){toast(e.message,'err');}).deleteStatus(id); }
+function addTmpl() { var n=gv('new-tmpl').trim(); if(!n) return; google.script.run.withSuccessHandler(function(){ toast('Đã thêm','ok'); renderSettings(); }).withFailureHandler(function(e){toast(e.message,'err');}).createTaskTemplate({name:n}); }
+function delTmpl(id) { google.script.run.withSuccessHandler(function(){ toast('Đã xóa','ok'); renderSettings(); }).withFailureHandler(function(e){toast(e.message,'err');}).deleteTaskTemplate(id); }
+function runSetup() { google.script.run.withSuccessHandler(function(r){ toast(r,'ok'); renderSettings(); }).withFailureHandler(function(e){toast(e.message,'err');}).setupSheets(); }
+
+// ---- MODAL ----
+function viewImg(fileId) {
+  var url = 'https://lh3.googleusercontent.com/d/' + fileId;
+  document.getElementById('modal-wrap').innerHTML = '<div class="modal-bg" onclick="closeModal()" style="display:flex;align-items:center;justify-content:center;padding:20px"><img src="'+url+'" style="max-width:100%;max-height:90vh;border-radius:12px;display:block"></div>';
+}
+function showModal(html) {
+  document.getElementById('modal-wrap').innerHTML = '<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">'+html+'</div></div>';
+}
+function showModalLg(html) {
+  document.getElementById('modal-wrap').innerHTML = '<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal modal-lg">'+html+'</div></div>';
+}
+function setModal(html) {
+  var m = document.querySelector('.modal');
+  if (m) m.innerHTML = html;
+}
+function closeModal() { document.getElementById('modal-wrap').innerHTML = ''; }
+
+// ---- TOAST ----
+function toast(msg, type) {
+  var el = document.createElement('div');
+  el.className = 'toast' + (type ? ' '+type : '');
+  el.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3000);
+}
+
+// ---- UTILS ----
+function gv(id) { var e=document.getElementById(id); return e?e.value:''; }
+function spinner() { return '<div class="spin-wrap"><div class="spin"></div> Đang tải...</div>'; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Wrapper google.script.run với auto loading button
+function gsRun(btn, fn, args, ok, fail) {
+  if (typeof btn === 'string') btn = document.getElementById(btn);
+  var orig = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled=true; btn.innerHTML='<span class="btn-spin"></span>'; }
+  function restore(){ if(btn){ btn.disabled=false; btn.innerHTML=orig; } }
+  google.script.run
+    .withSuccessHandler(function(r){ restore(); ok&&ok(r); })
+    .withFailureHandler(function(e){ restore(); fail?fail(e):toast(e.message,'err'); })
+    [fn].apply(google.script.run, args||[]);
+}
+
+function fmtDate(d) { if(!d) return ''; var dt=new Date(d); return isNaN(dt)?String(d):dt.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function fmtDateInput(d) {
+  if (!d) return '';
+  var dt = new Date(d);
+  if (isNaN(dt)) return '';
+  var y = dt.getFullYear();
+  var m = String(dt.getMonth()+1).padStart(2,'0');
+  var day = String(dt.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+</script>
+</body>
+</html>
