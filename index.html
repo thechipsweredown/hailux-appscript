@@ -1706,7 +1706,6 @@ function renderSettings() {
       html += '<div class="set-sec"><h3>Nhân viên ('+emps.length+')</h3>';
       emps.forEach(function(u) {
         html += '<div class="set-row"><span>'+esc(u.name)+'</span><div style="display:flex;gap:8px">';
-        html += '<button class="btn btn-sm btn-outline" onclick="toggleRole(\''+u.id+'\',\''+esc(u.name)+'\',\''+u.role+'\')">'+(u.role==='manager'?'Manager':'Promote')+'</button>';
         html += '<button class="btn btn-sm btn-ghost" onclick="delUser(\''+u.id+'\',this)">Xóa</button></div></div>';
       });
       html += '<div style="display:flex;gap:8px;margin-top:12px"><input id="new-uname" placeholder="Tên nhân viên mới..." style="max-width:200px"><button class="btn btn-blue" onclick="addUser(this)">+ Thêm</button></div></div>';
