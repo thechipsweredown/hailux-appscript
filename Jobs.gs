@@ -25,8 +25,11 @@ function getJobsWithStats() {
   const tasks = getTasks();
   return jobs
     .sort((a, b) => {
-      const da = (b.received_date || b.created_at || '');
-      const db = (a.received_date || a.created_at || '');
+      const da = b.received_date || '';
+      const db = a.received_date || '';
+      if (!da && !db) return (b.created_at || '').localeCompare(a.created_at || '');
+      if (!da) return 1;
+      if (!db) return -1;
       if (da !== db) return da.localeCompare(db);
       const numA = parseInt((a.code || '').replace(/\D/g, ''), 10) || 0;
       const numB = parseInt((b.code || '').replace(/\D/g, ''), 10) || 0;
@@ -58,6 +61,7 @@ function createJob(data) {
     statusId,
     data.notes || '',
     now,
+    data.avatar_id || '',
   ]);
   return { id, ...data, status_id: statusId, created_at: now };
 }
