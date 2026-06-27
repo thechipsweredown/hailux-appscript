@@ -24,17 +24,7 @@ function getJobsWithStats() {
   const jobs  = getJobs();
   const tasks = getTasks();
   return jobs
-    .sort((a, b) => {
-      const da = b.received_date || '';
-      const db = a.received_date || '';
-      if (!da && !db) return (b.created_at || '').localeCompare(a.created_at || '');
-      if (!da) return 1;
-      if (!db) return -1;
-      if (da !== db) return da.localeCompare(db);
-      const numA = parseInt((a.code || '').replace(/\D/g, ''), 10) || 0;
-      const numB = parseInt((b.code || '').replace(/\D/g, ''), 10) || 0;
-      return numB - numA;
-    })
+    .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
     .map(j => {
       const jobTasks  = tasks.filter(t => t.job_id === j.id);
       const assignees = [...new Set(jobTasks.map(t => t.assignee_id).filter(Boolean))];
