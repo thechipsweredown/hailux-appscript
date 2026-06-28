@@ -277,6 +277,133 @@ textarea{resize:vertical;min-height:80px}
 <div id="toast-wrap"></div>
 
 <script>
+// ===== PREVIEW MOCK — remove before deploying to GAS =====
+(function() {
+  var now = new Date();
+  function daysAgo(n) { var d = new Date(now); d.setDate(d.getDate()-n); return d.toISOString(); }
+  function daysFromNow(n) { var d = new Date(now); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+
+  var MI = {
+    users: [
+      {id:'u1',name:'Nguyễn Văn A',role:'employee'},
+      {id:'u2',name:'Trần Thị B',role:'employee'},
+      {id:'u3',name:'Lê Văn C',role:'employee'}
+    ],
+    statuses: [
+      {id:'js1',label:'Chờ tiếp nhận',color:'#9E9E9E',entity_type:'job'},
+      {id:'js2',label:'Đang xử lý',color:'#FF9800',entity_type:'job'},
+      {id:'js3',label:'Hoàn thành',color:'#4CAF50',entity_type:'job'},
+      {id:'js4',label:'Hủy',color:'#f44336',entity_type:'job'},
+      {id:'ts1',label:'Chờ làm',color:'#9E9E9E',entity_type:'task'},
+      {id:'ts2',label:'Đang làm',color:'#FF9800',entity_type:'task'},
+      {id:'ts3',label:'Hoàn thành',color:'#4CAF50',entity_type:'task'}
+    ],
+    taskTemplates: [],
+    settings: [{key:'manager_password',value:'1234'}],
+    categories: ['Túi','Giày','Ví','Thắt lưng','Vali']
+  };
+
+  var MJ = [
+    {id:'j1',code:'JOB0001',name:'Túi Hermès Birkin 35',category:'Túi',customer_name:'Chị Mai Anh',customer_contact:'0901234567',received_date:'2026-06-01',deadline:daysFromNow(5),revenue:2500000,repair_scope:'Vệ sinh + phục hồi màu + thay viền',status_id:'js2',notes:'KH nhờ gấp',created_at:daysAgo(27),avatar_id:'',task_count:3,assignee_count:2},
+    {id:'j2',code:'JOB0002',name:'Giày Louis Vuitton nam',category:'Giày',customer_name:'Anh Hùng',customer_contact:'0912345678',received_date:'2026-06-05',deadline:daysFromNow(-2),revenue:1800000,repair_scope:'Đổi đế + vệ sinh',status_id:'js3',notes:'',created_at:daysAgo(23),avatar_id:'',task_count:2,assignee_count:1},
+    {id:'j3',code:'JOB0003',name:'Ví Chanel WOC',category:'Ví',customer_name:'Chị Lan Phương',customer_contact:'0923456789',received_date:'',deadline:daysFromNow(18),revenue:900000,repair_scope:'Thay khóa',status_id:'js1',notes:'',created_at:daysAgo(18),avatar_id:'',task_count:1,assignee_count:0},
+    {id:'j4',code:'JOB0004',name:'Túi Gucci Dionysus',category:'Túi',customer_name:'Chị Hoa',customer_contact:'0934567890',received_date:'2026-06-12',deadline:daysFromNow(3),revenue:3200000,repair_scope:'Phục hồi tay cầm + vệ sinh toàn bộ',status_id:'js2',notes:'',created_at:daysAgo(16),avatar_id:'',task_count:4,assignee_count:2},
+    {id:'j5',code:'JOB0005',name:'Vali Rimowa',category:'Vali',customer_name:'Anh Dũng',customer_contact:'0945678901',received_date:'2026-06-15',deadline:daysFromNow(10),revenue:1500000,repair_scope:'Sửa bánh xe + thay khóa số',status_id:'js1',notes:'',created_at:daysAgo(13),avatar_id:'',task_count:2,assignee_count:1},
+    {id:'j6',code:'JOB0006',name:'Túi Dior Lady',category:'Túi',customer_name:'Chị Thu',customer_contact:'0956789012',received_date:'2026-06-18',deadline:daysFromNow(22),revenue:4100000,repair_scope:'Phục hồi toàn bộ + thay dây',status_id:'js2',notes:'Hàng hiệu cao cấp',created_at:daysAgo(10),avatar_id:'',task_count:5,assignee_count:3}
+  ];
+
+  var MT = [
+    {id:'t1',job_id:'j1',name:'Vệ sinh bề mặt',order:1,status_id:'ts3',assignee_id:'u1',deadline:'',notes:'',evidence_id:''},
+    {id:'t2',job_id:'j1',name:'Phục hồi màu',order:2,status_id:'ts2',assignee_id:'u2',deadline:'',notes:'',evidence_id:''},
+    {id:'t3',job_id:'j1',name:'Thay viền',order:3,status_id:'ts1',assignee_id:'',deadline:'',notes:'',evidence_id:''},
+    {id:'t4',job_id:'j4',name:'Tháo tay cầm cũ',order:1,status_id:'ts3',assignee_id:'u1',deadline:'',notes:'',evidence_id:''},
+    {id:'t5',job_id:'j4',name:'Làm tay cầm mới',order:2,status_id:'ts2',assignee_id:'u3',deadline:'',notes:'',evidence_id:''},
+    {id:'t6',job_id:'j4',name:'Vệ sinh thân túi',order:3,status_id:'ts1',assignee_id:'u2',deadline:'',notes:'',evidence_id:''},
+    {id:'t7',job_id:'j4',name:'Hoàn thiện & kiểm tra',order:4,status_id:'ts1',assignee_id:'',deadline:'',notes:'',evidence_id:''}
+  ];
+
+  var MD = {
+    total_jobs:6,in_progress:2,completed:1,pending:3,overdue:1,due_soon:2,
+    total_revenue:13900000,month_revenue:13900000,
+    staff_stats:[
+      {id:'u1',name:'Nguyễn Văn A',in_progress:2,completed:5},
+      {id:'u2',name:'Trần Thị B',in_progress:1,completed:3},
+      {id:'u3',name:'Lê Văn C',in_progress:1,completed:2}
+    ]
+  };
+
+  window.google = {
+    script: {
+      get run() {
+        var sh = null;
+        var r = {
+          withSuccessHandler: function(fn) { sh = fn; return r; },
+          withFailureHandler: function() { return r; },
+          getInitialData: function() { setTimeout(function(){ sh&&sh(MI); },50); },
+          getJobsWithStats: function() { setTimeout(function(){ sh&&sh(JSON.parse(JSON.stringify(MJ))); },80); },
+          getDashboardStats: function() { setTimeout(function(){ sh&&sh(MD); },80); },
+          getJobWithDetails: function(id) {
+            var j = MJ.filter(function(x){return x.id===id;})[0]||MJ[0];
+            var tasks = MT.filter(function(t){return t.job_id===id;});
+            setTimeout(function(){ sh&&sh(Object.assign({},j,{tasks:tasks})); },80);
+          },
+          verifyManagerPassword: function() { setTimeout(function(){ sh&&sh(true); },100); },
+          generateJobCode: function() { setTimeout(function(){ sh&&sh('JOB000'+(MJ.length+1)); },50); },
+          createJob: function(data) {
+            var nj = Object.assign({id:'j'+Date.now(),created_at:new Date().toISOString(),task_count:0,assignee_count:0},data);
+            MJ.unshift(nj); setTimeout(function(){ sh&&sh(nj); },200);
+          },
+          updateJob: function(id,data) { setTimeout(function(){ sh&&sh({id:id,success:true}); },200); },
+          deleteJob: function(id) {
+            var i = MJ.findIndex(function(j){return j.id===id;}); if(i>-1) MJ.splice(i,1);
+            setTimeout(function(){ sh&&sh(true); },200);
+          },
+          getAllTasksWithDetails: function() {
+            var all = MT.map(function(t){ var j=MJ.filter(function(x){return x.id===t.job_id;})[0]||{}; return Object.assign({},t,{job_name:j.name||'',job_code:j.code||''}); });
+            setTimeout(function(){ sh&&sh(all); },80);
+          },
+          getTasksByJob: function(jobId) { setTimeout(function(){ sh&&sh(MT.filter(function(t){return t.job_id===jobId;})); },80); },
+          createTask: function(data) { var t=Object.assign({id:'t'+Date.now()},data); MT.push(t); setTimeout(function(){ sh&&sh(t); },200); },
+          updateTask: function(id,data) { setTimeout(function(){ sh&&sh({id:id,success:true}); },200); },
+          deleteTask: function(id) { setTimeout(function(){ sh&&sh(true); },200); },
+          reorderTasks: function() { setTimeout(function(){ sh&&sh(true); },100); },
+          autoUpdateJobStatus: function() { setTimeout(function(){ sh&&sh(null); },100); },
+          getTaskTemplates: function() { setTimeout(function(){ sh&&sh([]); },50); },
+          getUsers: function() { setTimeout(function(){ sh&&sh(MI.users); },50); },
+          getStatuses: function() { setTimeout(function(){ sh&&sh(MI.statuses); },50); },
+          getSettings: function() { setTimeout(function(){ sh&&sh(MI.settings); },50); },
+          updateSetting: function() { setTimeout(function(){ sh&&sh(true); },100); },
+          createUser: function(d) { setTimeout(function(){ sh&&sh(Object.assign({id:'u'+Date.now()},d)); },200); },
+          updateUser: function(id,d) { setTimeout(function(){ sh&&sh({id:id,success:true}); },200); },
+          deleteUser: function() { setTimeout(function(){ sh&&sh(true); },200); },
+          createStatus: function(d) { setTimeout(function(){ sh&&sh(Object.assign({id:'s'+Date.now()},d)); },200); },
+          deleteStatus: function() { setTimeout(function(){ sh&&sh(true); },200); },
+          createTaskTemplate: function(d) { setTimeout(function(){ sh&&sh(Object.assign({id:'tt'+Date.now()},d)); },200); },
+          deleteTaskTemplate: function() { setTimeout(function(){ sh&&sh(true); },200); },
+          uploadJobAvatarOnly: function() { setTimeout(function(){ sh&&sh(null); },100); },
+          uploadJobAvatar: function() { setTimeout(function(){ sh&&sh(null); },100); },
+          uploadTaskEvidence: function() { setTimeout(function(){ sh&&sh({id:'img'+Date.now(),url:''}); },300); },
+          getEnrichedTasksForAssignee: function() { setTimeout(function(){ sh&&sh([]); },80); },
+          getTaskWithImages: function(id) {
+            var t=MT.filter(function(x){return x.id===id;})[0]||{};
+            setTimeout(function(){ sh&&sh(Object.assign({},t,{images:[]})); },80);
+          }
+        };
+        return r;
+      }
+    }
+  };
+
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      APP.role = 'manager';
+      APP.user = {name:'Preview', role:'manager'};
+      enterApp();
+    }, 300);
+  });
+})();
+// ===== END PREVIEW MOCK =====
+
 window.onerror = function(msg, src, line, col, err) {
   toast('JS Error: ' + msg + ' (line ' + line + ')', 'err');
   console.error(msg, err);
