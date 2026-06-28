@@ -619,9 +619,9 @@ function renderJobsTable() {
     html += '<td>'+(j.deadline
       ? '<div style="font-size:.85rem;font-weight:'+(over?'700':'500')+';color:'+(over?'#0d1b4b':'#333')+'">'
         +fmtDate(j.deadline)+'</div>'
-        +(daysLeft!==null && !over && daysLeft===0 ? '<div style="font-size:.75rem;color:#FF9800">hoàn thành trong ngày</div>'
-        : daysLeft!==null && !over && daysLeft>=1 && daysLeft<=7 ? '<div style="font-size:.75rem;color:#FF9800">còn '+daysLeft+' ngày</div>'
-        : over ? '<div style="font-size:.75rem;color:#0d1b4b">quá '+Math.abs(daysLeft)+' ngày</div>' : '')
+        +(daysLeft===0 ? '<div style="font-size:.75rem;color:#c00;margin-top:2px">hoàn thành trong ngày</div>'
+        : daysLeft!==null && !over && daysLeft>=1 && daysLeft<=7 ? '<div style="font-size:.75rem;color:#FF9800;margin-top:2px">còn '+daysLeft+' ngày</div>'
+        : over ? '<div style="font-size:.75rem;color:#c00;margin-top:2px">quá '+Math.abs(daysLeft)+' ngày</div>' : '')
       : '<span style="color:#ccc">—</span>')+'</td>';
     html += '<td><span style="font-family:monospace;font-weight:600;font-size:.88rem">'+(j.revenue?Number(j.revenue).toLocaleString('vi-VN')+'đ':'<span style="color:#ccc">—</span>')+'</span></td>';
     html += '<td><span style="background:#e0e8ff;color:#1a3a8f;padding:3px 10px;border-radius:12px;font-size:.82rem;font-weight:600">'+(j.task_count||0)+'</span></td>';
@@ -661,7 +661,7 @@ function renderJobsCards() {
       : '<div class="jcm-avt">📦</div>';
     var metaParts = [];
     if (j.received_date) metaParts.push('Nhận '+fmtDate(j.received_date));
-    if (j.deadline) metaParts.push((over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft===0?'<span style="color:#FF9800">hoàn thành trong ngày</span>':daysLeft!==null&&daysLeft>=1&&daysLeft<=7?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':'hạn '+fmtDate(j.deadline))));
+    if (j.deadline) metaParts.push((daysLeft===0?'<span style="color:#c00">hoàn thành trong ngày</span>':over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':daysLeft!==null&&daysLeft>=1&&daysLeft<=7?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':'hạn '+fmtDate(j.deadline)));
     var cardClick = _selectMode ? 'toggleSelectJob(\''+j.id+'\',!_selectedIds.has(\''+j.id+'\'));renderJobsTable()' : 'openJobDetail(\''+j.id+'\')';
     html += '<div class="job-card-m" style="border-left-color:'+color+(_selectedIds.has(j.id)?';background:#f0f4ff':'') +'" onclick="'+cardClick+'">';
     if (_selectMode) html += '<div style="position:absolute;top:8px;right:8px"><input type="checkbox" onclick="event.stopPropagation()" onchange="toggleSelectJob(\''+j.id+'\',this.checked);renderJobsTable()"'+(_selectedIds.has(j.id)?' checked':'')+' style="width:18px;height:18px"></div>';
@@ -1438,7 +1438,7 @@ function renderTasksContent() {
         var daysLeft = dl ? Math.ceil((new Date(dl)-new Date())/86400000) : null;
         var metaParts = [];
         if (t.assignee) metaParts.push(esc(t.assignee.name));
-        if (dl) metaParts.push(over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft===0?'<span style="color:#FF9800">hoàn thành trong ngày</span>':daysLeft!==null&&daysLeft>=1&&daysLeft<=3?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':fmtDate(dl)));
+        if (dl) metaParts.push(daysLeft===0?'<span style="color:#c00">hoàn thành trong ngày</span>':over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':daysLeft!==null&&daysLeft>=1&&daysLeft<=3?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':fmtDate(dl));
         var avtId = t.job && t.job.avatar_id;
         var avtHtml = avtId
           ? '<div class="jcm-avt" onclick="event.stopPropagation();viewImg(\''+avtId+'\')" style="cursor:zoom-in"><img src="https://lh3.googleusercontent.com/d/'+avtId+'" onerror="this.parentNode.innerHTML=\'📦\'"></div>'
@@ -1467,8 +1467,9 @@ function renderTasksContent() {
         html += '<td>'+(t.assignee?'<span style="font-size:.85rem">'+esc(t.assignee.name)+'</span>':'<span style="color:#ccc;font-size:.82rem">Chưa phân công</span>')+'</td>';
         html += '<td>'+(dl
           ? '<div style="font-size:.85rem;font-weight:'+(over?700:400)+';color:'+(over?'#0d1b4b':'#333')+'">'+fmtDate(dl)+'</div>'
-            +(over?'<div style="font-size:.75rem;color:#0d1b4b">quá '+Math.abs(daysLeft)+' ngày</div>'
-            :daysLeft===0?'<div style="font-size:.75rem;color:#FF9800">hoàn thành trong ngày</div>':daysLeft!==null&&daysLeft>=1&&daysLeft<=3?'<div style="font-size:.75rem;color:#FF9800">còn '+daysLeft+' ngày</div>':'')
+            +(daysLeft===0?'<div style="font-size:.75rem;color:#c00;margin-top:2px">hoàn thành trong ngày</div>'
+            :over?'<div style="font-size:.75rem;color:#c00;margin-top:2px">quá '+Math.abs(daysLeft)+' ngày</div>'
+            :daysLeft!==null&&daysLeft>=1&&daysLeft<=3?'<div style="font-size:.75rem;color:#FF9800;margin-top:2px">còn '+daysLeft+' ngày</div>':'')
           :'<span style="color:#ccc">—</span>')+'</td>';
         html += '<td style="font-size:.82rem;color:#888;max-width:180px">'+esc(t.notes||'')+'</td>';
         html += '</tr>';
