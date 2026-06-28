@@ -224,10 +224,10 @@ function getAllTasksWithDetails(filters) {
     }))
     .filter(t => {
       if (!t.name || !String(t.name).trim()) return false;
-      if (filters.assignee_id && t.assignee_id !== filters.assignee_id) return false;
-      if (filters.status_id   && t.status_id   !== filters.status_id)   return false;
-      if (filters.deadline_from && t.effective_deadline && t.effective_deadline < filters.deadline_from) return false;
-      if (filters.deadline_to   && t.effective_deadline && t.effective_deadline > filters.deadline_to + 'T23:59:59') return false;
+      if (filters.assignee_id  && t.assignee_id !== filters.assignee_id) return false;
+      if (filters.status_id    && t.status_id   !== filters.status_id)   return false;
+      if (filters.job_date_from && t.job && (t.job.created_at||'').slice(0,10) < filters.job_date_from) return false;
+      if (filters.job_date_to   && t.job && (t.job.created_at||'').slice(0,10) > filters.job_date_to)   return false;
       return true;
     })
     .sort((a, b) => {

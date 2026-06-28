@@ -9,8 +9,8 @@ function getDashboardStats(filters) {
   const category = filters.category || '';
 
   let jobs = getJobs();
-  if (dateFrom) jobs = jobs.filter(j => j.received_date && new Date(j.received_date) >= dateFrom);
-  if (dateTo)   jobs = jobs.filter(j => j.received_date && new Date(j.received_date) <= dateTo);
+  if (dateFrom) jobs = jobs.filter(j => j.created_at && new Date(j.created_at) >= dateFrom);
+  if (dateTo)   jobs = jobs.filter(j => j.created_at && new Date(j.created_at) <= dateTo);
   if (category) jobs = jobs.filter(j => (j.category||'') === category);
 
   const jobIds = new Set(jobs.map(j => j.id));

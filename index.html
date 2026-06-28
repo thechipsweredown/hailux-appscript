@@ -462,8 +462,8 @@ function loadDashboard() {
         html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">';
         statBars.forEach(function(b, i){
           var onclick = i===0 ? ' onclick="goToJobsFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo})"'
-                      : i===1 ? ' onclick="goToTasksFiltered({deadlineFrom:\'\',deadlineTo:\'\'})"'
-                      : i===3 ? ' onclick="goToJobsFiltered({overdue:true})"' : '';
+                      : i===1 ? ' onclick="goToTasksFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo})"'
+                      : i===3 ? ' onclick="goToJobsFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo,overdue:true})"' : '';
           var cursor  = (i===0||i===1||i===3) ? 'cursor:pointer;' : '';
           html += '<div'+onclick+' style="'+cursor+'background:#fff;border-radius:10px;border-left:4px solid '+b.color+';padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06)">';
           html += '<div style="display:flex;align-items:center;gap:12px">';
@@ -501,9 +501,9 @@ function loadDashboard() {
       } else {
         html += '<div class="stats-grid">';
         html += '<div class="stat-card blue" style="cursor:pointer" title="Xem tất cả job trong kỳ" onclick="goToJobsFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo})"><div class="stat-val">'+s.jobs.total+'</div><div class="stat-lbl">Tổng số Job</div><div class="stat-sub">'+s.jobs.overdue+' quá hạn</div></div>';
-        html += '<div class="stat-card orange" style="cursor:pointer" title="Xem tất cả task" onclick="goToTasksFiltered({deadlineFrom:\'\',deadlineTo:\'\'})"><div class="stat-val">'+s.tasks.total+'</div><div class="stat-lbl">Tổng số Task</div><div class="stat-sub">'+inProgressCount+' đang làm</div></div>';
+        html += '<div class="stat-card orange" style="cursor:pointer" title="Xem task trong kỳ" onclick="goToTasksFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo})"><div class="stat-val">'+s.tasks.total+'</div><div class="stat-lbl">Tổng số Task</div><div class="stat-sub">'+inProgressCount+' đang làm</div></div>';
         html += '<div class="stat-card green"><div class="stat-val money">'+fmt(s.revenue.total)+'</div><div class="stat-lbl">Tổng doanh thu</div><div class="stat-sub money">'+fmt(s.revenue.completed)+' hoàn thành</div></div>';
-        html += '<div class="stat-card red" style="cursor:pointer" title="Xem job quá hạn" onclick="goToJobsFiltered({overdue:true})"><div class="stat-val">'+s.jobs.overdue+'</div><div class="stat-lbl">Job quá hạn</div><div class="stat-sub">Cần xử lý ngay</div></div>';
+        html += '<div class="stat-card red" style="cursor:pointer" title="Xem job quá hạn" onclick="goToJobsFiltered({dateFrom:_dashFilters.dateFrom,dateTo:_dashFilters.dateTo,overdue:true})"><div class="stat-val">'+s.jobs.overdue+'</div><div class="stat-lbl">Job quá hạn</div><div class="stat-sub">Cần xử lý ngay</div></div>';
         html += '</div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">';
         html += '<div class="card"><div class="card-body"><h3 style="font-size:.95rem;font-weight:700;margin-bottom:14px">Trạng thái Job</h3>';
@@ -533,7 +533,12 @@ function loadDashboard() {
 // ---- JOBS ----
 var _jobs = [];
 var _jobSearch = '', _jobStatus = '', _jobCategory = '', _jobSortDir = 'desc';
-var _jobDateFrom = '', _jobDateTo = '', _jobOverdue = false;
+function defaultJobDateRange() {
+  var to = new Date(); var from = new Date(); from.setDate(from.getDate() - 90);
+  return { from: from.toISOString().split('T')[0], to: to.toISOString().split('T')[0] };
+}
+var _defJob = defaultJobDateRange();
+var _jobDateFrom = _defJob.from, _jobDateTo = _defJob.to, _jobOverdue = false;
 var _selectMode = false, _selectedIds = new Set();
 
 function goToJobsFiltered(opts) {
@@ -547,6 +552,7 @@ function goToJobsFiltered(opts) {
 }
 
 function renderJobs() {
+  _selectMode = false; _selectedIds = new Set();
   var el = document.getElementById('pg-jobs');
   el.innerHTML = spinner();
   google.script.run
@@ -572,8 +578,8 @@ function renderJobs() {
         html += '<button id="btn-select-mode" class="btn btn-sm btn-outline" onclick="toggleSelectMode()" style="width:100%;height:35.5px;display:flex;align-items:center;justify-content:center">Chọn</button>';
         html += '</div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
-        html += '<input type="date" style="width:100%;height:35px;font-size:.8rem" title="Từ ngày nhận" value="'+esc(_jobDateFrom)+'" onchange="_jobDateFrom=this.value;renderJobsTable()">';
-        html += '<input type="date" style="width:100%;height:35px;font-size:.8rem" title="Đến ngày nhận" value="'+esc(_jobDateTo)+'" onchange="_jobDateTo=this.value;renderJobsTable()">';
+        html += '<input type="date" style="width:100%;height:35px;font-size:.8rem" title="Từ ngày tạo" value="'+esc(_jobDateFrom)+'" onchange="_jobDateFrom=this.value;renderJobsTable()">';
+        html += '<input type="date" style="width:100%;height:35px;font-size:.8rem" title="Đến ngày tạo" value="'+esc(_jobDateTo)+'" onchange="_jobDateTo=this.value;renderJobsTable()">';
         html += '</div>';
         if (_jobOverdue) html += '<div style="text-align:center"><span style="background:#ffeaea;color:#c00;border:1px solid #f5b8b8;border-radius:16px;padding:3px 12px;font-size:.8rem;cursor:pointer" onclick="_jobOverdue=false;renderJobsTable()">Quá hạn ✕</span></div>';
         html += '<div id="bulk-del-bar" style="display:none;padding:4px 0 8px"><button class="btn" style="width:100%;background:#ffeaea;color:#c00;border:1px solid #f5b8b8" onclick="bulkDeleteJobs()">Xóa (<span id="sel-count">0</span>) job đã chọn</button></div>';
@@ -592,8 +598,8 @@ function renderJobs() {
         html += '<option value="">Tất cả loại KH</option>';
         cats2.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
         html += '</select>';
-        html += '<input type="date" style="flex:0 1 148px;height:35px;font-size:.82rem" title="Từ ngày nhận" value="'+esc(_jobDateFrom)+'" onchange="_jobDateFrom=this.value;renderJobsTable()">';
-        html += '<input type="date" style="flex:0 1 148px;height:35px;font-size:.82rem" title="Đến ngày nhận" value="'+esc(_jobDateTo)+'" onchange="_jobDateTo=this.value;renderJobsTable()">';
+        html += '<input type="date" style="flex:0 1 148px;height:35px;font-size:.82rem" title="Từ ngày tạo" value="'+esc(_jobDateFrom)+'" onchange="_jobDateFrom=this.value;renderJobsTable()">';
+        html += '<input type="date" style="flex:0 1 148px;height:35px;font-size:.82rem" title="Đến ngày tạo" value="'+esc(_jobDateTo)+'" onchange="_jobDateTo=this.value;renderJobsTable()">';
         if (_jobOverdue) html += '<span style="background:#ffeaea;color:#c00;border:1px solid #f5b8b8;border-radius:16px;padding:3px 10px;font-size:.8rem;white-space:nowrap;cursor:pointer" onclick="_jobOverdue=false;renderJobsTable()">Quá hạn ✕</span>';
         html += '<button class="btn btn-outline job-sort-btn" style="flex:none;width:120px;height:35.5px;white-space:nowrap;justify-content:center" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';_updateSortBtns();renderJobsTable()">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
         html += '<button id="btn-select-mode" class="btn btn-outline" style="flex:none;width:90px;height:35.5px;white-space:nowrap;justify-content:center" onclick="toggleSelectMode()">Chọn</button>';
@@ -616,8 +622,8 @@ function renderJobsTable() {
     var ms  = !q || (j.code||'').toLowerCase().indexOf(q)>=0 || (j.name||'').toLowerCase().indexOf(q)>=0 || (j.customer_name||'').toLowerCase().indexOf(q)>=0;
     var mst = !_jobStatus   || j.status_id === _jobStatus;
     var mct = !_jobCategory || (j.category||'') === _jobCategory;
-    var mdf = !_jobDateFrom || (j.received_date||'') >= _jobDateFrom;
-    var mdt = !_jobDateTo   || (j.received_date||'') <= _jobDateTo;
+    var mdf = !_jobDateFrom || (j.created_at||'').slice(0,10) >= _jobDateFrom;
+    var mdt = !_jobDateTo   || (j.created_at||'').slice(0,10) <= _jobDateTo;
     var st2 = APP.st(j.status_id); var norm2 = (st2?st2.label:'').toLowerCase().replace(/\s/g,'');
     var mOv = !_jobOverdue  || (j.deadline && new Date(j.deadline)<new Date() && norm2!=='hoànthành' && norm2!=='hủy');
     return ms && mst && mct && mdf && mdt && mOv;
@@ -671,8 +677,8 @@ function renderJobsCards() {
     var ms  = !q || (j.code||'').toLowerCase().indexOf(q)>=0 || (j.name||'').toLowerCase().indexOf(q)>=0 || (j.customer_name||'').toLowerCase().indexOf(q)>=0;
     var mst = !_jobStatus   || j.status_id === _jobStatus;
     var mct = !_jobCategory || (j.category||'') === _jobCategory;
-    var mdf = !_jobDateFrom || (j.received_date||'') >= _jobDateFrom;
-    var mdt = !_jobDateTo   || (j.received_date||'') <= _jobDateTo;
+    var mdf = !_jobDateFrom || (j.created_at||'').slice(0,10) >= _jobDateFrom;
+    var mdt = !_jobDateTo   || (j.created_at||'').slice(0,10) <= _jobDateTo;
     var st2 = APP.st(j.status_id); var norm2 = (st2?st2.label:'').toLowerCase().replace(/\s/g,'');
     var mOv = !_jobOverdue  || (j.deadline && new Date(j.deadline)<new Date() && norm2!=='hoànthành' && norm2!=='hủy');
     return ms && mst && mct && mdf && mdt && mOv;
@@ -1337,44 +1343,64 @@ function openTaskImgs(taskId, taskName) {
 
 // ---- ALL TASKS (Manager view) ----
 function defaultTaskFilters() {
-  var to = new Date(); var from = new Date(); from.setDate(from.getDate()-30);
-  return { assignee_id:'', status_id:'', deadline_from: from.toISOString().split('T')[0], deadline_to: to.toISOString().split('T')[0] };
+  return { assignee_id: '', status_id: '', job_date_from: '', job_date_to: '' };
+}
+
+var _taskFilters = defaultTaskFilters();
+var _taskPageSize = 15;
+var _taskPages = {};
+var _taskDateRange = '30';
+var _taskFromDashboard = false;
+
+function applyTaskDateRange(val) {
+  _taskDateRange = val;
+  _taskFromDashboard = false;
+  var to = new Date();
+  var from = new Date();
+  if (val) { from.setDate(from.getDate() - Number(val)); _taskFilters.job_date_from = from.toISOString().split('T')[0]; }
+  else { _taskFilters.job_date_from = ''; }
+  _taskFilters.job_date_to = val ? to.toISOString().split('T')[0] : '';
+  _taskPages = {}; loadAllTasks();
 }
 
 function goToTasksFiltered(opts) {
   opts = opts || {};
   _taskFilters = defaultTaskFilters();
-  if (opts.status_id)  _taskFilters.status_id  = opts.status_id;
-  if (opts.assignee_id) _taskFilters.assignee_id = opts.assignee_id;
-  if ('deadlineFrom' in opts) { _taskFilters.deadline_from = opts.deadlineFrom || ''; }
-  if ('deadlineTo'   in opts) { _taskFilters.deadline_to   = opts.deadlineTo   || ''; }
-  _taskMobileRange = '';
+  if (opts.status_id)   _taskFilters.status_id    = opts.status_id;
+  if (opts.assignee_id) _taskFilters.assignee_id   = opts.assignee_id;
+  if (opts.dateFrom || opts.dateTo) {
+    _taskFilters.job_date_from = opts.dateFrom || '';
+    _taskFilters.job_date_to   = opts.dateTo   || '';
+    _taskFromDashboard = true;
+  } else {
+    _taskDateRange = '30';
+    applyTaskDateRange('30');
+    _taskPages = {};
+    goTo('tasks');
+    return;
+  }
   _taskPages = {};
   goTo('tasks');
 }
-var _taskFilters = defaultTaskFilters();
-var _taskPageSize = 15;
-var _taskPages = {};
-var _taskMobileRange = '30';
-function applyTaskMobileRange(val) {
-  _taskMobileRange = val;
-  var to = new Date();
-  var from = new Date();
-  if (val) { from.setDate(from.getDate() - Number(val)); _taskFilters.deadline_from = from.toISOString().split('T')[0]; }
-  else { _taskFilters.deadline_from = ''; }
-  _taskFilters.deadline_to = val ? to.toISOString().split('T')[0] : '';
-  _taskPages = {}; loadAllTasks();
-} // { status_id: currentPage }
 
 function renderAllTasks() {
   var el = document.getElementById('pg-tasks');
   var emps = APP.emps();
   var tst  = APP.stList('task');
 
+  var dashChip = _taskFromDashboard
+    ? '<span style="background:#e8f0fe;color:#1a3a8f;border:1px solid #b8c8f0;border-radius:16px;padding:3px 12px;font-size:.8rem;cursor:pointer;white-space:nowrap" onclick="_taskFromDashboard=false;applyTaskDateRange(\'30\')">Job '+fmtDate(_taskFilters.job_date_from)+' – '+fmtDate(_taskFilters.job_date_to)+' ✕</span>'
+    : '';
+  var rangeSelect = '<select style="{{sty}}" onchange="applyTaskDateRange(this.value)">'
+    + ['7','30','90','365',''].map(function(v){
+        var lbl = v==='7'?'7 ngày':v==='30'?'30 ngày':v==='90'?'90 ngày':v==='365'?'1 năm':'Tất cả';
+        return '<option value="'+v+'"'+(_taskDateRange===v?' selected':'')+'>'+lbl+'</option>';
+      }).join('')
+    + '</select>';
   var fb;
   if (isMobile()) {
-    var rangeVal = _taskMobileRange || '30';
-    fb = '<div style="display:flex;gap:8px;margin-bottom:14px">';
+    fb = '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+    fb += '<div style="display:flex;gap:8px">';
     fb += '<select id="tf-assignee" style="flex:1;min-width:0" onchange="_taskFilters.assignee_id=this.value;_taskPages={};loadAllTasks()">';
     fb += '<option value="">Tất cả NV</option>';
     emps.forEach(function(u){ fb += '<option value="'+u.id+'"'+(_taskFilters.assignee_id===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
@@ -1383,13 +1409,8 @@ function renderAllTasks() {
     fb += '<option value="">Tất cả TT</option>';
     tst.forEach(function(s){ fb += '<option value="'+s.id+'"'+(_taskFilters.status_id===s.id?' selected':'')+'>'+esc(s.label)+'</option>'; });
     fb += '</select>';
-    fb += '<select style="flex:1;min-width:0" onchange="applyTaskMobileRange(this.value)">';
-    fb += '<option value="7"'+(rangeVal==='7'?' selected':'')+'>7 ngày</option>';
-    fb += '<option value="30"'+(rangeVal==='30'?' selected':'')+'>30 ngày</option>';
-    fb += '<option value="90"'+(rangeVal==='90'?' selected':'')+'>90 ngày</option>';
-    fb += '<option value="365"'+(rangeVal==='365'?' selected':'')+'>1 năm</option>';
-    fb += '<option value=""'+(rangeVal===''?' selected':'')+'>Tất cả</option>';
-    fb += '</select>';
+    fb += _taskFromDashboard ? dashChip : rangeSelect.replace('{{sty}}','flex:1;min-width:0');
+    fb += '</div>';
     fb += '</div>';
   } else {
     fb = '<div style="background:#fff;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
@@ -1402,9 +1423,7 @@ function renderAllTasks() {
     fb += '<option value="">Tất cả TT</option>';
     tst.forEach(function(s){ fb += '<option value="'+s.id+'"'+(_taskFilters.status_id===s.id?' selected':'')+'>'+esc(s.label)+'</option>'; });
     fb += '</select>';
-    fb += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">Deadline từ</label><input type="date" id="tf-from" value="'+_taskFilters.deadline_from+'" style="width:135px;padding:6px 10px;font-size:.83rem" onchange="_taskFilters.deadline_from=this.value;_taskPages={};loadAllTasks()"></div>';
-    fb += '<div style="display:flex;align-items:center;gap:6px;font-size:.85rem"><label style="color:#888">đến</label><input type="date" id="tf-to" value="'+_taskFilters.deadline_to+'" style="width:135px;padding:6px 10px;font-size:.83rem" onchange="_taskFilters.deadline_to=this.value;_taskPages={};loadAllTasks()"></div>';
-    fb += '<button class="btn btn-sm btn-ghost" onclick="_taskFilters=defaultTaskFilters();_taskPages={};renderAllTasks()">↺ Mặc định</button>';
+    fb += _taskFromDashboard ? dashChip : rangeSelect.replace('{{sty}}','padding:6px 10px;font-size:.83rem');
     fb += '</div>';
   }
 
