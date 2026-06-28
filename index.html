@@ -47,7 +47,7 @@ nav{flex:1;padding:12px 0}
 .page-header .sub{font-size:.9rem;color:#888;margin-top:2px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
 .stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #1a3a8f}
-.stat-card.red{border-left-color:#0d1b4b}
+.stat-card.red{border-left-color:#e00}
 .stat-card.green{border-left-color:#4CAF50}
 .stat-card.orange{border-left-color:#FF9800}
 .stat-card.blue{border-left-color:#2196F3}
@@ -475,7 +475,7 @@ function loadDashboard() {
           {color:'#2196F3', val:s.jobs.total,       lbl:'Tổng Job',      sub:s.jobs.overdue+' quá hạn'},
           {color:'#FF9800', val:s.tasks.total,       lbl:'Tổng Task',     sub:inProgressCount+' đang làm'},
           {color:'#4CAF50', val:fmt(s.revenue.total),lbl:'Doanh thu',     sub:fmt(s.revenue.completed)+' HT'},
-          {color:'#0d1b4b', val:s.jobs.overdue,      lbl:'Job quá hạn',   sub:'Cần xử lý ngay'},
+          {color:'#e00',    val:s.jobs.overdue,      lbl:'Job quá hạn',   sub:'Cần xử lý ngay'},
         ];
         html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">';
         statBars.forEach(function(b, i){
