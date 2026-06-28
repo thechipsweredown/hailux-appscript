@@ -562,18 +562,18 @@ function renderJobs() {
         html += '<div id="jobs-cards"></div>';
       } else {
         html += '<div class="card"><div class="card-toolbar">';
-        html += '<input style="flex:1" placeholder="Tìm mã / tên / khách hàng..." oninput="_jobSearch=this.value;renderJobsTable()" value="'+esc(_jobSearch)+'">';
-        html += '<select style="flex:1" onchange="_jobStatus=this.value;renderJobsTable()">';
+        html += '<input style="flex:0 1 180px" placeholder="Tìm mã / tên / khách hàng..." oninput="_jobSearch=this.value;renderJobsTable()" value="'+esc(_jobSearch)+'">';
+        html += '<select style="flex:0 1 180px" onchange="_jobStatus=this.value;renderJobsTable()">';
         html += '<option value="">Tất cả trạng thái</option>';
         jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(s.id===_jobStatus?' selected':'')+'>'+s.label+'</option>'; });
         html += '</select>';
         var cats2 = APP.categories || [];
-        html += '<select style="flex:1" onchange="_jobCategory=this.value;renderJobsTable()">';
+        html += '<select style="flex:0 1 180px" onchange="_jobCategory=this.value;renderJobsTable()">';
         html += '<option value="">Tất cả loại KH</option>';
         cats2.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
         html += '</select>';
-        html += '<button class="btn btn-sm btn-outline job-sort-btn" style="flex:1" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';_updateSortBtns();renderJobsTable()">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
-        html += '<button id="btn-select-mode" class="btn btn-sm btn-outline" style="flex:1" onclick="toggleSelectMode()">Chọn</button>';
+        html += '<button class="btn btn-outline job-sort-btn" style="flex:0 1 180px" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';_updateSortBtns();renderJobsTable()">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
+        html += '<button id="btn-select-mode" class="btn btn-outline" style="flex:0 1 180px" onclick="toggleSelectMode()">Chọn</button>';
         html += '<button id="btn-bulk-del" class="btn btn-sm" style="display:none;background:#ffeaea;color:#c00;border:1px solid #f5b8b8" onclick="bulkDeleteJobs()">Xóa (<span id="sel-count">0</span>)</button>';
         html += '</div>';
         html += '<div class="tbl-wrap"><table><thead><tr><th id="th-chk" style="width:36px;display:none"><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this.checked)"></th><th>Mã</th><th>Tên SP</th><th>Loại KH</th><th>Ngày nhận</th><th>Deadline</th><th>Doanh thu</th><th>Tasks</th><th>NV</th><th>Trạng thái</th><th></th></tr></thead><tbody id="jobs-tbody"></tbody></table></div></div>';
