@@ -669,7 +669,7 @@ function renderJobsCards() {
       : '<div class="jcm-avt">📦</div>';
     var metaParts = [];
     if (j.received_date) metaParts.push('Nhận '+fmtDate(j.received_date));
-    if (j.deadline) metaParts.push((over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft!==null&&daysLeft<=7?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':'hạn '+fmtDate(j.deadline))));
+    if (j.deadline) metaParts.push((over?'<span style="color:#c00">quá '+Math.abs(daysLeft)+' ngày</span>':(daysLeft!==null&&daysLeft>=0&&daysLeft<=7?'<span style="color:#FF9800">còn '+daysLeft+' ngày</span>':'hạn '+fmtDate(j.deadline))));
     var cardClick = _selectMode ? 'toggleSelectJob(\''+j.id+'\',!_selectedIds.has(\''+j.id+'\'));renderJobsTable()' : 'openJobDetail(\''+j.id+'\')';
     html += '<div class="job-card-m" style="border-left-color:'+color+(_selectedIds.has(j.id)?';background:#f0f4ff':'') +'" onclick="'+cardClick+'">';
     if (_selectMode) html += '<div style="position:absolute;top:8px;right:8px"><input type="checkbox" onclick="event.stopPropagation()" onchange="toggleSelectJob(\''+j.id+'\',this.checked);renderJobsTable()"'+(_selectedIds.has(j.id)?' checked':'')+' style="width:18px;height:18px"></div>';
@@ -678,6 +678,10 @@ function renderJobsCards() {
     html += '<div class="jcm-code">'+esc(j.code||'')+(j.category?' · '+esc(j.category):'')+'</div>';
     html += '<div class="jcm-name">'+esc(j.name||'—')+'</div>';
     if (j.customer_name) html += '<div class="jcm-customer">'+esc(j.customer_name)+(j.customer_contact?' · '+esc(j.customer_contact):'')+'</div>';
+    html += '<div style="display:flex;gap:6px;margin:4px 0 6px">';
+    html += '<span style="background:#E6F1FB;color:#0C447C;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500">'+(j.task_count||0)+' đầu việc</span>';
+    html += '<span style="background:#EAF3DE;color:#27500A;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500">'+(j.assignee_count||0)+' NV</span>';
+    html += '</div>';
     html += '<div class="jcm-footer"><span class="jcm-meta">'+metaParts.join(' · ')+'</span>';
     if (st) html += '<span class="badge" style="background:'+st.color+'22;color:'+st.color+';flex-shrink:0">'+st.label+'</span>';
     html += '</div></div></div>';
