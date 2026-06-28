@@ -544,7 +544,7 @@ function renderJobs() {
       if (mobile) {
         html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
         html += '<input placeholder="Tìm mã / tên / khách hàng..." oninput="_jobSearch=this.value;renderJobsTable()" value="'+esc(_jobSearch)+'">';
-        html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;align-items:center">';
+        html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:center">';
         html += '<select style="font-size:.78rem;padding:6px 4px;width:100%" onchange="_jobStatus=this.value;renderJobsTable()">';
         html += '<option value="">Tất cả TT</option>';
         jst.forEach(function(s){ html += '<option value="'+s.id+'"'+(s.id===_jobStatus?' selected':'')+'>'+s.label+'</option>'; });
@@ -554,11 +554,10 @@ function renderJobs() {
         html += '<option value="">Tất cả KH</option>';
         cats.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
         html += '</select>';
-        html += '<button onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';renderJobsTable()" style="width:100%;background:none;border:1px solid #ddd;border-radius:8px;padding:6px 4px;font-size:.82rem;cursor:pointer;color:#555">'+(_jobSortDir==='desc'?'↓ Mới':'↑ Cũ')+'</button>';
         html += '<button id="btn-select-mode" class="btn btn-sm btn-outline" onclick="toggleSelectMode()" style="width:100%">Chọn</button>';
         html += '</div>';
         html += '<div id="bulk-del-bar" style="display:none;padding:4px 0 8px"><button class="btn" style="width:100%;background:#ffeaea;color:#c00;border:1px solid #f5b8b8" onclick="bulkDeleteJobs()">Xóa (<span id="sel-count">0</span>) job đã chọn</button></div>';
-        html += '<div style="text-align:center;padding:6px 0 10px"><button onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';renderJobsTable()" style="background:#f4f6ff;border:1px solid #d0d8f0;border-radius:20px;padding:5px 16px;font-size:.82rem;color:#1a3a8f;cursor:pointer">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button></div>';
+        html += '<div style="text-align:center;padding:6px 0 10px"><button class="job-sort-btn" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';_updateSortBtns();renderJobsTable()" style="background:#f4f6ff;border:1px solid #d0d8f0;border-radius:20px;padding:5px 16px;font-size:.82rem;color:#1a3a8f;cursor:pointer">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button></div>';
         html += '</div>';
         html += '<div id="jobs-cards"></div>';
       } else {
@@ -573,7 +572,7 @@ function renderJobs() {
         html += '<option value="">Tất cả loại KH</option>';
         cats2.forEach(function(c){ html += '<option value="'+esc(c)+'"'+(_jobCategory===c?' selected':'')+'>'+esc(c)+'</option>'; });
         html += '</select>';
-        html += '<button class="btn btn-sm btn-outline" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';renderJobsTable()">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
+        html += '<button class="btn btn-sm btn-outline job-sort-btn" onclick="_jobSortDir=_jobSortDir===\'desc\'?\'asc\':\'desc\';_updateSortBtns();renderJobsTable()">'+(_jobSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
         html += '<button id="btn-select-mode" class="btn btn-sm btn-outline" onclick="toggleSelectMode()">Chọn</button>';
         html += '<button id="btn-bulk-del" class="btn btn-sm" style="display:none;background:#ffeaea;color:#c00;border:1px solid #f5b8b8" onclick="bulkDeleteJobs()">Xóa (<span id="sel-count">0</span>)</button>';
         html += '</div>';
@@ -596,10 +595,6 @@ function renderJobsTable() {
     var mct = !_jobCategory || (j.category||'') === _jobCategory;
     return ms && mst && mct;
   }).slice().sort(function(a, b) {
-    var da = a.received_date || '', db = b.received_date || '';
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
     return _jobSortDir === 'desc' ? (b.created_at||'').localeCompare(a.created_at||'') : (a.created_at||'').localeCompare(b.created_at||'');
   });
   var tbody = document.getElementById('jobs-tbody');
@@ -650,10 +645,6 @@ function renderJobsCards() {
     var mct = !_jobCategory || (j.category||'') === _jobCategory;
     return ms && mst && mct;
   }).slice().sort(function(a, b) {
-    var da = a.received_date || '', db = b.received_date || '';
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
     return _jobSortDir === 'desc' ? (b.created_at||'').localeCompare(a.created_at||'') : (a.created_at||'').localeCompare(b.created_at||'');
   });
   if (!rows.length) { el.innerHTML = '<div class="empty">Không có job nào</div>'; return; }
@@ -777,6 +768,12 @@ function delJob(id) {
     .withSuccessHandler(function(){ toast('Đã xóa','ok'); renderJobs(); })
     .withFailureHandler(function(e){ toast(e.message,'err'); })
     .deleteJob(id);
+}
+
+function _updateSortBtns() {
+  document.querySelectorAll('.job-sort-btn').forEach(function(b) {
+    b.textContent = _jobSortDir === 'desc' ? '↓ Mới nhất' : '↑ Cũ nhất';
+  });
 }
 
 function toggleSelectMode() {
