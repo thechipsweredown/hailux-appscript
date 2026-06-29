@@ -269,6 +269,7 @@ textarea{resize:vertical;min-height:80px}
     <div id="pg-tasks" class="hidden"></div>
     <div id="pg-mytasks" class="hidden"></div>
     <div id="pg-settings" class="hidden"></div>
+    <div id="pg-notes" class="hidden"></div>
   </div>
   <div id="bottom-nav"></div>
 </div>
@@ -362,7 +363,7 @@ function enterApp() {
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('sb-name').textContent = APP.user.name;
   var menu = APP.role === 'manager'
-    ? [{id:'dashboard',icon:'📊',lbl:'Dashboard'},{id:'jobs',icon:'👜',lbl:'Công việc'},{id:'tasks',icon:'📋',lbl:'Đầu việc'},{id:'settings',icon:'⚙️',lbl:'Cài đặt'}]
+    ? [{id:'dashboard',icon:'📊',lbl:'Dashboard'},{id:'jobs',icon:'👜',lbl:'Công việc'},{id:'tasks',icon:'📋',lbl:'Đầu việc'},{id:'notes',icon:'📝',lbl:'Ghi chú'},{id:'settings',icon:'⚙️',lbl:'Cài đặt'}]
     : [{id:'mytasks',icon:'✅',lbl:'Việc của tôi'}];
   document.getElementById('sb-nav').innerHTML = menu.map(function(m) {
     return '<div class="nav-item" id="nav-'+m.id+'" onclick="goTo(\''+m.id+'\')"><span>'+m.icon+'</span><span class="nav-lbl">'+m.lbl+'</span></div>';
@@ -400,6 +401,20 @@ function _resetTaskFilters() {
   _taskFromDashboard=false; _taskDateRange='30'; _taskPages={};
 }
 
+var _notesTab = 'tasks';
+var _notesDateRange = '30';
+var _notesDateFrom = '';
+var _notesDateTo = '';
+var _notesAssignee = '';
+var _notesSearch = '';
+
+function _resetNotesFilters() {
+  _notesTab = 'tasks'; _notesDateRange = '30'; _notesAssignee = ''; _notesSearch = '';
+  var to = new Date(); var from = new Date(); from.setDate(from.getDate()-30);
+  _notesDateFrom = from.toISOString().split('T')[0];
+  _notesDateTo   = to.toISOString().split('T')[0];
+}
+
 function goTo(page) {
   APP.page = page;
   document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
@@ -412,6 +427,7 @@ function goTo(page) {
   else if (page === 'jobs')  { if(!_preserveJobFilters)  _resetJobFilters();  _preserveJobFilters=false;  renderJobs(); }
   else if (page === 'tasks') { if(!_preserveTaskFilters) _resetTaskFilters(); _preserveTaskFilters=false; renderAllTasks(); }
   else if (page === 'mytasks') renderMyTasks();
+  else if (page === 'notes')   { _resetNotesFilters(); renderNotes(); }
   else if (page === 'settings') renderSettings();
 }
 
@@ -1876,6 +1892,174 @@ function empSaveNotes(taskId, jobId, btn) {
     function(){ toast('Đã lưu ghi chú','ok'); });
 }
 
+// ---- NOTES ----
+var _notesTaskCache = [];
+var _notesJobCache  = [];
+
+function renderNotes() {
+  var el = document.getElementById('pg-notes');
+  var emps = APP.emps();
+  var rangeOpts = [['7','7 ngày'],['30','30 ngày'],['90','90 ngày'],['365','1 năm'],['','Tất cả']];
+
+  var fb;
+  if (isMobile()) {
+    fb  = '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+    fb += '<input type="text" id="notes-search" placeholder="Tìm mã / tên / nội dung ghi chú..." value="'+esc(_notesSearch)+'" style="width:100%;height:36px;padding:0 10px;font-size:.85rem;border:1px solid #ddd;border-radius:6px;box-sizing:border-box" oninput="_notesSearch=this.value;renderNotesContent()">';
+    fb += '<div style="display:flex;gap:8px">';
+    fb += '<select style="flex:1;min-width:0" onchange="_notesAssignee=this.value;renderNotesContent()"><option value="">Tất cả NV</option>';
+    emps.forEach(function(u){ fb += '<option value="'+u.id+'"'+(_notesAssignee===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
+    fb += '</select>';
+    fb += '<select style="flex:1;min-width:0" onchange="applyNotesDateRange(this.value)">';
+    rangeOpts.forEach(function(o){ fb += '<option value="'+o[0]+'"'+(_notesDateRange===o[0]?' selected':'')+'>'+o[1]+'</option>'; });
+    fb += '</select></div></div>';
+  } else {
+    fb  = '<div class="card-toolbar" style="margin-bottom:16px;flex-wrap:wrap">';
+    fb += '<input type="text" id="notes-search" placeholder="Tìm mã / tên / nội dung ghi chú..." value="'+esc(_notesSearch)+'" style="flex:1 1 220px;min-width:0;height:35px;padding:0 10px;font-size:.85rem;border:1px solid #ddd;border-radius:6px" oninput="_notesSearch=this.value;renderNotesContent()">';
+    fb += '<select style="flex:0 1 160px;min-width:0;height:35px" onchange="_notesAssignee=this.value;renderNotesContent()"><option value="">Tất cả NV</option>';
+    emps.forEach(function(u){ fb += '<option value="'+u.id+'"'+(_notesAssignee===u.id?' selected':'')+'>'+esc(u.name)+'</option>'; });
+    fb += '</select>';
+    fb += '<select style="flex:none;width:110px;height:35px;font-size:.83rem;padding:0 6px" onchange="applyNotesDateRange(this.value)">';
+    rangeOpts.forEach(function(o){ fb += '<option value="'+o[0]+'"'+(_notesDateRange===o[0]?' selected':'')+'>'+o[1]+'</option>'; });
+    fb += '</select></div>';
+  }
+
+  el.innerHTML = '<div class="page-header"><div><h1>Ghi chú</h1><p class="sub">Tổng hợp ghi chú từ công việc & đầu việc</p></div></div>'
+    + fb
+    + '<div id="notes-tabs"></div>'
+    + '<div id="notes-content">'+spinner()+'</div>';
+
+  _notesTaskCache = []; _notesJobCache = [];
+  loadNotesData();
+}
+
+function applyNotesDateRange(val) {
+  _notesDateRange = val;
+  var to = new Date(); var from = new Date();
+  if (val) { from.setDate(from.getDate() - Number(val)); _notesDateFrom = from.toISOString().split('T')[0]; }
+  else _notesDateFrom = '';
+  _notesDateTo = val ? to.toISOString().split('T')[0] : '';
+  _notesTaskCache = []; _notesJobCache = [];
+  var el = document.getElementById('notes-content'); if (el) el.innerHTML = spinner();
+  loadNotesData();
+}
+
+function loadNotesData() {
+  var taskFilters = { job_date_from: _notesDateFrom, job_date_to: _notesDateTo };
+  var tasksLoaded = false, jobsLoaded = false;
+  function tryRender() { if (tasksLoaded && jobsLoaded) renderNotesContent(); }
+
+  google.script.run
+    .withSuccessHandler(function(tasks) {
+      _notesTaskCache = (tasks || []).filter(function(t){ return t.notes && String(t.notes).trim(); });
+      tasksLoaded = true; tryRender();
+    })
+    .withFailureHandler(function(e){ var el=document.getElementById('notes-content'); if(el) el.innerHTML='<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getAllTasksWithDetails(taskFilters);
+
+  google.script.run
+    .withSuccessHandler(function(jobs) {
+      _notesJobCache = (jobs || []).filter(function(j){ return j.notes && String(j.notes).trim(); });
+      jobsLoaded = true; tryRender();
+    })
+    .withFailureHandler(function(e){ var el=document.getElementById('notes-content'); if(el) el.innerHTML='<p class="empty">Lỗi: '+e.message+'</p>'; })
+    .getJobsWithStats();
+}
+
+function renderNotesContent() {
+  var tabsEl = document.getElementById('notes-tabs');
+  var el = document.getElementById('notes-content');
+  if (!tabsEl || !el) return;
+  var kw = _notesSearch.trim().toLowerCase();
+
+  // Render tabs
+  function tabStyle(active) {
+    return 'padding:10px 22px;font-size:.9rem;font-weight:'+(active?'700':'500')+';color:'+(active?'#0d1b4b':'#777')+';background:none;border:none;border-bottom:'+(active?'2px solid #0d1b4b':'2px solid transparent')+';cursor:pointer;margin-bottom:-2px';
+  }
+  tabsEl.innerHTML = '<div style="display:flex;border-bottom:2px solid #eee;margin-bottom:18px">'
+    + '<button style="'+tabStyle(_notesTab==='tasks')+'" onclick="_notesTab=\'tasks\';renderNotesContent()">📋 Đầu việc</button>'
+    + '<button style="'+tabStyle(_notesTab==='jobs')+'" onclick="_notesTab=\'jobs\';renderNotesContent()">👜 Công việc</button>'
+    + '</div>';
+
+  var html = '';
+
+  if (_notesTab === 'tasks') {
+    var items = _notesTaskCache.filter(function(t) {
+      if (_notesAssignee && t.assignee_id !== _notesAssignee) return false;
+      if (kw) {
+        var hay = ((t.job&&t.job.code)||'').toLowerCase()+' '+(t.name||'').toLowerCase()+' '+(t.notes||'').toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+    if (!items.length) {
+      html = '<p class="empty">Không có ghi chú đầu việc nào trong khoảng thời gian này</p>';
+    } else {
+      html = '<div style="display:flex;flex-direction:column;gap:10px">';
+      items.forEach(function(t) {
+        var jobCode = t.job ? (t.job.code||'') : '';
+        var jobName = t.job ? (t.job.name||'') : '';
+        var aName = t.assignee ? t.assignee.name : '';
+        var avtId = t.job ? (t.job.avatar_id||'') : '';
+        var avt = avtId
+          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(avtId)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="viewImg(\''+esc(avtId)+'\')" loading="lazy">'
+          : '<div style="width:48px;height:48px;border-radius:8px;background:#eef1f8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem">📦</div>';
+        html += '<div class="card" style="padding:14px 18px">';
+        html += '<div style="display:flex;gap:12px;align-items:flex-start">';
+        html += avt;
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="font-size:.78rem;color:#888;margin-bottom:3px">'+esc(jobCode)+(jobName?' · '+esc(jobName):'')+( aName?' · <strong style="color:#0d1b4b">'+esc(aName)+'</strong>':'')+'</div>';
+        html += '<div style="font-weight:600;font-size:.92rem;margin-bottom:6px">'+esc(t.name||'')+'</div>';
+        html += '<div style="font-size:.87rem;color:#333;white-space:pre-wrap;line-height:1.55">'+esc(t.notes||'')+'</div>';
+        if (t.created_at) html += '<div style="font-size:.73rem;color:#bbb;margin-top:6px">'+fmtDT(t.created_at)+'</div>';
+        html += '</div>';
+        if (t.status) html += '<span class="badge" style="background:'+esc(t.status.color||'#999')+'22;color:'+esc(t.status.color||'#999')+';flex-shrink:0;white-space:nowrap">'+esc(t.status.label)+'</span>';
+        html += '</div></div></div></div>';
+      });
+      html += '</div>';
+    }
+  } else {
+    var jItems = _notesJobCache.filter(function(j) {
+      var dt = (j.created_at||'').slice(0,10);
+      if (_notesDateFrom && dt < _notesDateFrom) return false;
+      if (_notesDateTo   && dt > _notesDateTo)   return false;
+      if (kw) {
+        var hay = (j.code||'').toLowerCase()+' '+(j.name||'').toLowerCase()+' '+(j.customer_name||'').toLowerCase()+' '+(j.notes||'').toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+    if (!jItems.length) {
+      html = '<p class="empty">Không có ghi chú công việc nào trong khoảng thời gian này</p>';
+    } else {
+      var stList = APP.stList('job');
+      html = '<div style="display:flex;flex-direction:column;gap:10px">';
+      jItems.forEach(function(j) {
+        var st = stList.filter(function(s){ return s.id===j.status_id; })[0];
+        var avt = j.avatar_id
+          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(j.avatar_id)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="viewImg(\''+esc(j.avatar_id)+'\')" loading="lazy">'
+          : '<div style="width:48px;height:48px;border-radius:8px;background:#eef1f8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem">📦</div>';
+        html += '<div class="card" style="padding:14px 18px">';
+        html += '<div style="display:flex;gap:12px;align-items:flex-start">';
+        html += avt;
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="font-size:.78rem;color:#888;margin-bottom:3px">'+esc(j.code||'')+(j.customer_name?' · '+esc(j.customer_name):'')+'</div>';
+        html += '<div style="font-weight:600;font-size:.92rem;margin-bottom:6px">'+esc(j.name||'')+'</div>';
+        html += '<div style="font-size:.87rem;color:#333;white-space:pre-wrap;line-height:1.55">'+esc(j.notes||'')+'</div>';
+        if (j.created_at) html += '<div style="font-size:.73rem;color:#bbb;margin-top:6px">'+fmtDT(j.created_at)+'</div>';
+        html += '</div>';
+        if (st) html += '<span class="badge" style="background:'+esc(st.color||'#999')+'22;color:'+esc(st.color||'#999')+';flex-shrink:0;white-space:nowrap">'+esc(st.label)+'</span>';
+        html += '</div></div></div></div>';
+      });
+      html += '</div>';
+    }
+  }
+  el.innerHTML = html;
+}
+
 // ---- SETTINGS ----
 function renderSettings() {
   var el = document.getElementById('pg-settings');
@@ -1975,6 +2159,7 @@ function gsRun(btn, fn, args, ok, fail) {
 }
 
 function fmtDate(d) { if(!d) return ''; var dt=new Date(d); return isNaN(dt)?String(d):dt.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function fmtDT(d) { if(!d) return ''; var dt=new Date(d); if(isNaN(dt)) return ''; return dt.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+dt.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDateInput(d) {
   if (!d) return '';
   var dt = new Date(d);
