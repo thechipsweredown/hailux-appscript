@@ -407,9 +407,10 @@ var _notesDateFrom = '';
 var _notesDateTo = '';
 var _notesAssignee = '';
 var _notesSearch = '';
+var _notesSortDir = 'desc';
 
 function _resetNotesFilters() {
-  _notesTab = 'tasks'; _notesDateRange = '30'; _notesAssignee = ''; _notesSearch = '';
+  _notesTab = 'tasks'; _notesDateRange = '30'; _notesAssignee = ''; _notesSearch = ''; _notesSortDir = 'desc';
   var to = new Date(); var from = new Date(); from.setDate(from.getDate()-30);
   _notesDateFrom = from.toISOString().split('T')[0];
   _notesDateTo   = to.toISOString().split('T')[0];
@@ -931,7 +932,7 @@ function bulkDeleteJobs() {
 }
 
 // ---- JOB DETAIL ----
-function openJobDetail(jobId) {
+function openJobDetail(jobId, readOnly) {
   showModal(spinner());
   google.script.run
     .withSuccessHandler(function(job) {
@@ -966,13 +967,16 @@ function openJobDetail(jobId) {
         html += '<img src="https://lh3.googleusercontent.com/d/'+job.avatar_id+'" style="width:60px;height:60px;object-fit:cover;border-radius:10px;border:1px solid #eee;cursor:zoom-in" onclick="openLightbox(\'https://lh3.googleusercontent.com/d/'+job.avatar_id+'\',\'https://drive.google.com/file/d/'+job.avatar_id+'/view\')">';
       }
       html += '<div><div style="font-size:.82rem;color:#888;margin-bottom:4px">Ảnh đại diện</div>';
-      html += '<button class="btn btn-sm btn-outline" onclick="document.getElementById(\'av-'+job.id+'\').click()">📷 '+(job.avatar_id?'Đổi ảnh':'Tải ảnh lên')+'</button>';
-      html += '<input type="file" id="av-'+job.id+'" accept="image/*" style="display:none" onchange="uploadAvatar(this,\''+job.id+'\')"></div>';
+      if (!readOnly) {
+        html += '<button class="btn btn-sm btn-outline" onclick="document.getElementById(\'av-'+job.id+'\').click()">📷 '+(job.avatar_id?'Đổi ảnh':'Tải ảnh lên')+'</button>';
+        html += '<input type="file" id="av-'+job.id+'" accept="image/*" style="display:none" onchange="uploadAvatar(this,\''+job.id+'\')">';
+      }
+      html += '</div>';
       html += '</div>';
       html += '<div style="margin-top:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><strong>Luồng Task</strong></div>';
       html += renderDAG(job.tasks, tst);
       html += '</div>';
-      html += '<div style="margin-top:4px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><strong>Chi tiết Task ('+job.tasks.length+')</strong><button class="btn btn-sm btn-blue" onclick="openAddTask(\''+job.id+'\')">+ Thêm Task</button></div>';
+      html += '<div style="margin-top:4px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><strong>Chi tiết Task ('+job.tasks.length+')</strong>'+(readOnly?'':'<button class="btn btn-sm btn-blue" onclick="openAddTask(\''+job.id+'\')">+ Thêm Task</button>')+'</div>';
       html += '<div id="tl-'+job.id+'">';
       html += renderTasksHtml(job.tasks, tst, job);
       html += '</div></div>';
@@ -1038,15 +1042,11 @@ function renderTasksHtml(tasks, tst, job) {
     html += '<div class="task-meta">'+esc(asgn?asgn.name:'Chưa phân công')+' · '+(dl?fmtDate(dl):'Theo job')+'</div>';
     if (t.emp_notes) html += '<div style="font-size:.78rem;color:#1a3a8f;margin-top:3px;font-style:italic">💬 NV: '+esc(t.emp_notes)+'</div>';
     html += '</div>';
-    var snapData = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||i+1,assignee:asgn?asgn.name:'Chưa phân công',completed_at:t.completed_at||'',evidence_id:t.evidence_id||'',status_label:st?st.label:'',status_color:st?st.color:'#999'}));
+    var snapData = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||i+1,assignee:asgn?asgn.name:'Chưa phân công',completed_at:t.completed_at||'',evidence_id:t.evidence_id||'',status_label:st?st.label:'',status_color:st?st.color:'#999',emp_notes:t.emp_notes||''}));
     html += '<div class="task-acts" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">';
     html += '<div style="display:flex;align-items:center;gap:4px">';
     html += (st?'<span class="badge" style="background:'+st.color+'22;color:'+st.color+'">'+st.label+'</span>':'');
-    if (t.evidence_id) html += '<button class="btn btn-sm btn-outline" style="padding:3px 8px" data-t="'+snapData+'" onclick="_showEmpTaskSnap(this)">Chi tiết</button>';
-    html += '</div>';
-    html += '<div style="display:flex;gap:4px">';
-    html += '<button class="btn btn-sm btn-outline" onclick="openEditTask(\''+t.id+'\',\''+job.id+'\')">Sửa</button>';
-    html += '<button class="btn btn-sm btn-ghost" style="color:#e53935" onclick="delTask(\''+t.id+'\',\''+job.id+'\')">Xóa</button>';
+    if (t.evidence_id || t.emp_notes) html += '<button class="btn btn-sm btn-outline" style="padding:3px 8px" data-t="'+snapData+'" onclick="_showEmpTaskSnap(this)">Chi tiết</button>';
     html += '</div></div></div>';
   });
   return html;
@@ -1559,7 +1559,8 @@ function renderTasksContent() {
         var avtHtml = avtId
           ? '<div class="jcm-avt" onclick="event.stopPropagation();viewImg(\''+avtId+'\')" style="cursor:zoom-in"><img src="https://lh3.googleusercontent.com/d/'+avtId+'" onerror="this.parentNode.innerHTML=\'📦\'"></div>'
           : '<div class="jcm-avt">📦</div>';
-        html += '<div class="task-card-m" style="display:flex;align-items:flex-start;gap:12px;border-left:3px solid '+color+'">';
+        var td = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||'',emp_notes:t.emp_notes||'',evidence_id:t.evidence_id||'',status_label:s?s.label:'',status_color:color,assignee:t.assignee?t.assignee.name:'Chưa phân công',completed_at:t.completed_at||'',job_id:t.job?t.job.id:'',job_code:t.job?t.job.code||'':'',job_name:t.job?t.job.name||'':''}));
+        html += '<div class="task-card-m" data-t="'+td+'" onclick="_showNoteTaskDetail(this)" style="display:flex;align-items:flex-start;gap:12px;border-left:3px solid '+color+';cursor:pointer">';
         html += avtHtml;
         html += '<div style="flex:1;min-width:0">';
         html += '<div class="tcm-name">'+esc(t.name||'—')+'</div>';
@@ -1577,7 +1578,8 @@ function renderTasksContent() {
         var isDone = s && (norm(s.label)==='hoànthành'||norm(s.label)==='đãxong');
         var over = dl && new Date(dl) < new Date() && !isDone;
         var daysLeft = dl ? Math.ceil((new Date(dl)-new Date())/86400000) : null;
-        html += '<tr>';
+        var td = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||'',emp_notes:t.emp_notes||'',evidence_id:t.evidence_id||'',status_label:s?s.label:'',status_color:color,assignee:t.assignee?t.assignee.name:'Chưa phân công',completed_at:t.completed_at||'',job_id:t.job?t.job.id:'',job_code:t.job?t.job.code||'':'',job_name:t.job?t.job.name||'':''}));
+        html += '<tr data-t="'+td+'" onclick="_showNoteTaskDetail(this)" style="cursor:pointer">';
         html += '<td><strong>'+esc(t.name||'—')+'</strong></td>';
         html += '<td><div style="font-size:.85rem;font-weight:500">'+esc(t.job?t.job.code:'—')+'</div><div style="font-size:.78rem;color:#aaa">'+esc(t.job?t.job.name:'')+'</div></td>';
         html += '<td>'+(t.assignee?'<span style="font-size:.85rem">'+esc(t.assignee.name)+'</span>':'<span style="color:#ccc;font-size:.82rem">Chưa phân công</span>')+'</td>';
@@ -1860,6 +1862,8 @@ function _showEmpTaskSnap(el) {
   html += '<span class="chip">👤 '+esc(t.assignee)+'</span>';
   if (t.completed_at) html += '<span class="chip">✓ '+fmtDate(t.completed_at)+'</span>';
   html += '</div>';
+  // Ghi chú nhân viên
+  if (t.emp_notes) html += '<div style="background:#f0f4ff;border-left:3px solid #1a3a8f;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;font-size:.87rem;color:#1a3a8f;white-space:pre-wrap;line-height:1.55">💬 '+esc(t.emp_notes)+'</div>';
   // Ảnh evidence
   if (ids.length) {
     html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
@@ -1868,12 +1872,47 @@ function _showEmpTaskSnap(el) {
       html += '<img src="'+url+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px;cursor:zoom-in" onclick="openLightbox(\''+url+'\',\'https://drive.google.com/file/d/'+id+'/view\')">';
     });
     html += '</div>';
-  } else {
+  } else if (!t.emp_notes) {
     html += '<div style="color:#bbb;font-size:.85rem">Chưa có ảnh</div>';
   }
   html += '</div>';
   html += '<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
   setModal(html);
+}
+
+function _showNoteTaskDetail(el) {
+  var t;
+  try { t = JSON.parse(el.getAttribute('data-t')); } catch(e) { return; }
+  var ids = (t.evidence_id || '').split(',').filter(Boolean);
+  var html = '<div class="modal-hd">';
+  html += '<div style="display:flex;align-items:center;gap:10px">';
+  html += '<div style="width:28px;height:28px;border-radius:50%;background:#0d1b4b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">'+t.order+'</div>';
+  html += '<span style="font-weight:600;font-size:1rem">'+esc(t.name)+'</span>';
+  html += '</div><button class="btn-x" onclick="closeModal()">✕</button></div>';
+  html += '<div class="modal-bd">';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
+  if (t.status_label) html += '<span class="badge" style="background:'+t.status_color+'22;color:'+t.status_color+'">'+esc(t.status_label)+'</span>';
+  html += '<span class="chip">👤 '+esc(t.assignee)+'</span>';
+  if (t.completed_at) html += '<span class="chip">✓ '+fmtDate(t.completed_at)+'</span>';
+  html += '</div>';
+  if (t.emp_notes) html += '<div style="background:#f0f4ff;border-left:3px solid #1a3a8f;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;font-size:.87rem;color:#1a3a8f;white-space:pre-wrap;line-height:1.55">💬 '+esc(t.emp_notes)+'</div>';
+  if (ids.length) {
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">';
+    ids.forEach(function(id) {
+      var url = 'https://lh3.googleusercontent.com/d/'+id;
+      html += '<img src="'+url+'" style="width:88px;height:88px;object-fit:cover;border-radius:10px;cursor:zoom-in" onclick="openLightbox(\''+url+'\',\'https://drive.google.com/file/d/'+id+'/view\')">';
+    });
+    html += '</div>';
+  }
+  if (t.job_id) {
+    html += '<div style="background:#f7f8fc;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">';
+    html += '<div style="font-size:.85rem;color:#555">📦 <strong>'+esc(t.job_code)+'</strong>'+(t.job_name?' · '+esc(t.job_name):'')+'</div>';
+    html += '<button class="btn btn-sm btn-outline" onclick="closeModal();setTimeout(function(){openJobDetail(\''+esc(t.job_id)+'\',true)},50)">Xem Job</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  html += '<div class="modal-ft"><button class="btn btn-outline" onclick="closeModal()">Đóng</button></div>';
+  showModal(html);
 }
 
 function empUpdStatusBtn(btn, taskId, statusId, jobId) {
@@ -1911,7 +1950,9 @@ function renderNotes() {
     fb += '</select>';
     fb += '<select style="flex:1;min-width:0" onchange="applyNotesDateRange(this.value)">';
     rangeOpts.forEach(function(o){ fb += '<option value="'+o[0]+'"'+(_notesDateRange===o[0]?' selected':'')+'>'+o[1]+'</option>'; });
-    fb += '</select></div></div>';
+    fb += '</select>';
+    fb += '<button id="notes-sort-btn" class="btn btn-outline" style="flex:none;white-space:nowrap;padding:0 10px" onclick="_notesSortDir=_notesSortDir===\'desc\'?\'asc\':\'desc\';renderNotesContent()">'+(_notesSortDir==='desc'?'↓':'↑')+'</button>';
+    fb += '</div></div>';
   } else {
     fb  = '<div class="card-toolbar" style="margin-bottom:16px;flex-wrap:wrap">';
     fb += '<input type="text" id="notes-search" placeholder="Tìm mã / tên / nội dung ghi chú..." value="'+esc(_notesSearch)+'" style="flex:1 1 220px;min-width:0;height:35px;padding:0 10px;font-size:.85rem;border:1px solid #ddd;border-radius:6px" oninput="_notesSearch=this.value;renderNotesContent()">';
@@ -1920,7 +1961,9 @@ function renderNotes() {
     fb += '</select>';
     fb += '<select style="flex:none;width:110px;height:35px;font-size:.83rem;padding:0 6px" onchange="applyNotesDateRange(this.value)">';
     rangeOpts.forEach(function(o){ fb += '<option value="'+o[0]+'"'+(_notesDateRange===o[0]?' selected':'')+'>'+o[1]+'</option>'; });
-    fb += '</select></div>';
+    fb += '</select>';
+    fb += '<button id="notes-sort-btn" class="btn btn-outline" style="flex:none;height:35px;padding:0 12px;white-space:nowrap" onclick="_notesSortDir=_notesSortDir===\'desc\'?\'asc\':\'desc\';renderNotesContent()">'+(_notesSortDir==='desc'?'↓ Mới nhất':'↑ Cũ nhất')+'</button>';
+    fb += '</div>';
   }
 
   el.innerHTML = '<div class="page-header"><div><h1>Ghi chú</h1><p class="sub">Tổng hợp ghi chú từ công việc & đầu việc</p></div></div>'
@@ -1950,7 +1993,7 @@ function loadNotesData() {
 
   google.script.run
     .withSuccessHandler(function(tasks) {
-      _notesTaskCache = (tasks || []).filter(function(t){ return t.notes && String(t.notes).trim(); });
+      _notesTaskCache = (tasks || []).filter(function(t){ return t.emp_notes && String(t.emp_notes).trim(); });
       tasksLoaded = true; tryRender();
     })
     .withFailureHandler(function(e){ var el=document.getElementById('notes-content'); if(el) el.innerHTML='<p class="empty">Lỗi: '+e.message+'</p>'; })
@@ -1970,6 +2013,8 @@ function renderNotesContent() {
   var el = document.getElementById('notes-content');
   if (!tabsEl || !el) return;
   var kw = _notesSearch.trim().toLowerCase();
+  var sb = document.getElementById('notes-sort-btn');
+  if (sb) sb.textContent = _notesSortDir === 'desc' ? '↓ Mới nhất' : '↑ Cũ nhất';
 
   // Render tabs
   function tabStyle(active) {
@@ -1986,24 +2031,26 @@ function renderNotesContent() {
     var items = _notesTaskCache.filter(function(t) {
       if (_notesAssignee && t.assignee_id !== _notesAssignee) return false;
       if (kw) {
-        var hay = ((t.job&&t.job.code)||'').toLowerCase()+' '+(t.name||'').toLowerCase()+' '+(t.notes||'').toLowerCase();
+        var hay = ((t.job&&t.job.code)||'').toLowerCase()+' '+(t.name||'').toLowerCase()+' '+(t.emp_notes||'').toLowerCase();
         if (hay.indexOf(kw) === -1) return false;
       }
       return true;
     });
+    items.sort(function(a,b){ var ca=a.created_at||'', cb=b.created_at||''; return _notesSortDir==='desc'?cb.localeCompare(ca):ca.localeCompare(cb); });
     if (!items.length) {
       html = '<p class="empty">Không có ghi chú đầu việc nào trong khoảng thời gian này</p>';
     } else {
-      html = '<div style="display:flex;flex-direction:column;gap:10px">';
-      items.forEach(function(t) {
+      html = '<div style="display:flex;flex-direction:column;gap:5px">';
+      items.forEach(function(t, i) {
         var jobCode = t.job ? (t.job.code||'') : '';
         var jobName = t.job ? (t.job.name||'') : '';
         var aName = t.assignee ? t.assignee.name : '';
         var avtId = t.job ? (t.job.avatar_id||'') : '';
         var avt = avtId
-          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(avtId)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="viewImg(\''+esc(avtId)+'\')" loading="lazy">'
+          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(avtId)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();viewImg(\''+esc(avtId)+'\')" loading="lazy">'
           : '<div style="width:48px;height:48px;border-radius:8px;background:#eef1f8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem">📦</div>';
-        html += '<div class="card" style="padding:14px 18px">';
+        var td = esc(JSON.stringify({id:t.id,name:t.name,order:t.order||i+1,emp_notes:t.emp_notes||'',evidence_id:t.evidence_id||'',status_label:t.status?t.status.label:'',status_color:t.status?t.status.color:'#999',assignee:t.assignee?t.assignee.name:'Chưa phân công',completed_at:t.completed_at||'',job_id:t.job_id||'',job_code:jobCode,job_name:jobName}));
+        html += '<div class="card" style="padding:14px 18px;cursor:pointer;margin-bottom:0" data-t="'+td+'" onclick="_showNoteTaskDetail(this)">';
         html += '<div style="display:flex;gap:12px;align-items:flex-start">';
         html += avt;
         html += '<div style="flex:1;min-width:0">';
@@ -2011,7 +2058,7 @@ function renderNotesContent() {
         html += '<div style="flex:1;min-width:0">';
         html += '<div style="font-size:.78rem;color:#888;margin-bottom:3px">'+esc(jobCode)+(jobName?' · '+esc(jobName):'')+( aName?' · <strong style="color:#0d1b4b">'+esc(aName)+'</strong>':'')+'</div>';
         html += '<div style="font-weight:600;font-size:.92rem;margin-bottom:6px">'+esc(t.name||'')+'</div>';
-        html += '<div style="font-size:.87rem;color:#333;white-space:pre-wrap;line-height:1.55">'+esc(t.notes||'')+'</div>';
+        html += '<div style="font-size:.87rem;color:#333;white-space:pre-wrap;line-height:1.55">'+esc(t.emp_notes||'')+'</div>';
         if (t.created_at) html += '<div style="font-size:.73rem;color:#bbb;margin-top:6px">'+fmtDT(t.created_at)+'</div>';
         html += '</div>';
         if (t.status) html += '<span class="badge" style="background:'+esc(t.status.color||'#999')+'22;color:'+esc(t.status.color||'#999')+';flex-shrink:0;white-space:nowrap">'+esc(t.status.label)+'</span>';
@@ -2030,17 +2077,18 @@ function renderNotesContent() {
       }
       return true;
     });
+    jItems.sort(function(a,b){ var ca=a.created_at||'', cb=b.created_at||''; return _notesSortDir==='desc'?cb.localeCompare(ca):ca.localeCompare(cb); });
     if (!jItems.length) {
       html = '<p class="empty">Không có ghi chú công việc nào trong khoảng thời gian này</p>';
     } else {
       var stList = APP.stList('job');
-      html = '<div style="display:flex;flex-direction:column;gap:10px">';
+      html = '<div style="display:flex;flex-direction:column;gap:5px">';
       jItems.forEach(function(j) {
         var st = stList.filter(function(s){ return s.id===j.status_id; })[0];
         var avt = j.avatar_id
-          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(j.avatar_id)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="viewImg(\''+esc(j.avatar_id)+'\')" loading="lazy">'
+          ? '<img src="https://lh3.googleusercontent.com/d/'+esc(j.avatar_id)+'" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();viewImg(\''+esc(j.avatar_id)+'\')" loading="lazy">'
           : '<div style="width:48px;height:48px;border-radius:8px;background:#eef1f8;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem">📦</div>';
-        html += '<div class="card" style="padding:14px 18px">';
+        html += '<div class="card" style="padding:14px 18px;cursor:pointer;margin-bottom:0" onclick="openJobDetail(\''+esc(j.id)+'\',true)">';
         html += '<div style="display:flex;gap:12px;align-items:flex-start">';
         html += avt;
         html += '<div style="flex:1;min-width:0">';
